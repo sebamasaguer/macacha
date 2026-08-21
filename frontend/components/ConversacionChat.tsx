@@ -14,7 +14,7 @@ export function ConversacionChat({ mensajes }: { mensajes: MensajeAdmin[] }) {
         <BurbujaMensaje key={indice} esUsuario={mensaje.rol === "user"}>
           <p className="whitespace-pre-wrap">{mensaje.contenido}</p>
           {mensaje.rol === "assistant" && mensaje.proveedor && (
-            <span className="mt-1 inline-block rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-600">
+            <span className="mt-1 inline-block rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-600 dark:bg-white/15 dark:text-gray-300">
               {mensaje.proveedor === "gemini" ? "Gemini" : "OpenAI"}
             </span>
           )}
@@ -38,17 +38,17 @@ function DetalleTecnico({
   const detalle = extraerDetalleToolCalls(mensaje, todosLosMensajes);
 
   return (
-    <div className="mt-2 border-t border-gray-300 pt-2 text-sm">
-      <button onClick={() => setAbierto(!abierto)} className="text-blue-700 underline">
+    <div className="mt-2 border-t border-gray-300 pt-2 text-sm dark:border-white/20">
+      <button onClick={() => setAbierto(!abierto)} className="enlace-accion">
         {abierto ? "Ocultar detalle técnico" : "Ver detalle técnico"}
       </button>
       {abierto && (
         <ul className="mt-2 space-y-2">
           {detalle.map((item) => (
-            <li key={item.id} className="rounded bg-white p-2">
+            <li key={item.id} className="rounded bg-white p-2 dark:bg-black/20">
               <p className="font-mono text-xs font-semibold">{item.nombre}</p>
               <pre className="whitespace-pre-wrap break-all text-xs">{item.argumentos}</pre>
-              <pre className="whitespace-pre-wrap break-all text-xs text-gray-600">
+              <pre className="whitespace-pre-wrap break-all text-xs texto-secundario">
                 {item.resultado ?? "(sin resultado)"}
               </pre>
             </li>
