@@ -93,14 +93,14 @@ export default function UsuariosPage() {
   }
 
   if (cargando) {
-    return <p className="p-4 text-sm text-gray-500">Cargando…</p>;
+    return <p className="p-4 text-sm texto-secundario">Cargando…</p>;
   }
 
   if (error) {
     return (
       <div className="p-4">
-        <p className="text-sm text-red-600">No se pudo cargar la lista de usuarios</p>
-        <button onClick={cargar} className="mt-2 text-sm text-blue-700 underline">
+        <p className="text-sm texto-error">No se pudo cargar la lista de usuarios</p>
+        <button onClick={cargar} className="enlace-accion mt-2">
           Reintentar
         </button>
       </div>
@@ -111,28 +111,28 @@ export default function UsuariosPage() {
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-semibold">Usuarios</h1>
-        <button
-          onClick={() => setEditando("nuevo")}
-          className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white"
-        >
+        <button onClick={() => setEditando("nuevo")} className="boton-primario">
           Nuevo usuario
         </button>
       </div>
 
       <div className="mb-4 flex items-end gap-2">
         <div>
-          <label className="mb-1 block text-sm font-medium">Nuevo organismo</label>
+          <label className="campo-label">Nuevo organismo</label>
           <input
             type="text"
             value={nombreOrganismoNuevo}
             onChange={(e) => setNombreOrganismoNuevo(e.target.value)}
-            className="rounded border border-gray-300 px-2 py-1 text-sm"
+            className="campo-input"
           />
         </div>
-        <button onClick={handleCrearOrganismo} className="rounded bg-gray-200 px-3 py-1.5 text-sm">
+        <button
+          onClick={handleCrearOrganismo}
+          className="rounded bg-gray-200 px-3 py-1.5 text-sm hover:bg-gray-300 dark:bg-white/10 dark:hover:bg-white/20"
+        >
           Crear organismo
         </button>
-        {errorOrganismo && <p className="text-sm text-red-600">{errorOrganismo}</p>}
+        {errorOrganismo && <p className="text-sm texto-error">{errorOrganismo}</p>}
       </div>
 
       {editando && (
@@ -151,11 +151,11 @@ export default function UsuariosPage() {
       )}
 
       {usuarios && usuarios.length === 0 ? (
-        <p className="text-sm text-gray-500">Todavía no hay usuarios cargados</p>
+        <p className="text-sm texto-secundario">Todavía no hay usuarios cargados</p>
       ) : (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-left">
+            <tr className="tabla-cabecera">
               <th className="p-2">Email</th>
               <th className="p-2">Rol</th>
               <th className="p-2">Organismo</th>
@@ -165,7 +165,7 @@ export default function UsuariosPage() {
           </thead>
           <tbody>
             {usuarios!.map((usuario) => (
-              <tr key={usuario.id} className="border-b border-gray-100">
+              <tr key={usuario.id} className="tabla-fila">
                 <td className="p-2">{usuario.email}</td>
                 <td className="p-2">
                   {usuario.rol === "super_admin" ? "Super admin" : "Admin de organismo"}
@@ -173,10 +173,7 @@ export default function UsuariosPage() {
                 <td className="p-2">{usuario.organismo ?? "—"}</td>
                 <td className="p-2">{usuario.activo ? "Sí" : "No"}</td>
                 <td className="p-2">
-                  <button
-                    onClick={() => setEditando(usuario)}
-                    className="text-sm text-blue-700 underline"
-                  >
+                  <button onClick={() => setEditando(usuario)} className="enlace-accion">
                     Editar
                   </button>
                 </td>
