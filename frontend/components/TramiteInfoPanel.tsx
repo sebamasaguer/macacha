@@ -16,9 +16,9 @@ export function TramiteInfoPanel({
   const { estaTildado, toggle } = useChecklist(tramite.tramite_id);
 
   return (
-    <div>
+    <div className="text-gray-900 dark:text-gray-100">
       <h2 className="font-semibold">{tramite.nombre_oficial}</h2>
-      <p className="text-sm text-gray-500">{tramite.organismo}</p>
+      <p className="text-sm texto-secundario">{tramite.organismo}</p>
 
       {tramite.requisitos.length > 0 && (
         <div className="mt-4">
@@ -36,7 +36,7 @@ export function TramiteInfoPanel({
                 <span
                   className={
                     estaTildado("requisito", indice)
-                      ? "flex-1 line-through text-gray-400"
+                      ? "flex-1 text-gray-400 line-through dark:text-gray-500"
                       : "flex-1"
                   }
                 >
@@ -84,7 +84,7 @@ export function TramiteInfoPanel({
                 <span
                   className={
                     estaTildado("paso", indice)
-                      ? "flex-1 line-through text-gray-400"
+                      ? "flex-1 text-gray-400 line-through dark:text-gray-500"
                       : "flex-1"
                   }
                 >
@@ -112,7 +112,7 @@ export function TramiteInfoPanel({
                 href={enlace}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded border border-blue-600 px-3 py-1.5 text-center text-sm text-blue-700 hover:bg-blue-50"
+                className="rounded border border-macacha-blue px-3 py-1.5 text-center text-sm text-macacha-blue hover:bg-blue-50 dark:hover:bg-white/10"
               >
                 {enlace}
               </a>
@@ -136,7 +136,7 @@ export function TramiteInfoPanel({
           </p>
         )}
         {!tramite.telefono_contacto && !tramite.email_contacto && (
-          <p className="text-gray-400">Sin datos de contacto.</p>
+          <p className="texto-secundario">Sin datos de contacto.</p>
         )}
       </div>
     </div>
@@ -157,7 +157,7 @@ function BotonDuda({
       type="button"
       onClick={() => onPreguntar(texto)}
       disabled={disabled}
-      className="mt-2 text-xs text-blue-700 underline disabled:opacity-50"
+      className="enlace-accion mt-2 text-xs disabled:opacity-50"
     >
       ¿Tenés dudas sobre esto?
     </button>
