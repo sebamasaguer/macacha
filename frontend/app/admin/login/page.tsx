@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { login } from "../../../lib/admin-api";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
@@ -21,7 +19,11 @@ export default function LoginPage() {
       setError(true);
       return;
     }
-    router.push("/admin/chats");
+    // Recarga completa (no router.push): AdminAuthProvider (hooks/useAdminActual.tsx) solo pide
+    // /admin/me al montarse, y como vive en el layout compartido de /admin/*, una navegación de
+    // cliente no lo remonta — el menú "Usuarios" quedaba sin aparecer para un super_admin hasta
+    // un F5. Forzar la recarga acá remonta el provider con la sesión ya autenticada.
+    window.location.href = "/admin/chats";
   }
 
   return (
