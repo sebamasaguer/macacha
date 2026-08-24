@@ -49,7 +49,7 @@ export default function ContactoDetallePage() {
     return (
       <div className="p-4">
         <p className="text-sm texto-error">No se pudo cargar la solicitud</p>
-        <button onClick={cargar} className="enlace-accion mt-2">
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -64,7 +64,7 @@ export default function ContactoDetallePage() {
     return (
       <div className="p-4">
         <p className="text-sm texto-secundario">Solicitud no encontrada</p>
-        <Link href="/admin/contacto" className="enlace-accion">
+        <Link href="/admin/contacto" className="boton-secundario">
           Volver a la lista
         </Link>
       </div>

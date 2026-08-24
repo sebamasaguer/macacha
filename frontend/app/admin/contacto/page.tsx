@@ -34,7 +34,7 @@ export default function ContactoPage() {
     return (
       <div className="p-4">
         <p className="text-sm texto-error">No se pudo cargar la lista de contacto</p>
-        <button onClick={cargar} className="enlace-accion mt-2">
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -64,7 +64,7 @@ export default function ContactoPage() {
                 <td className="p-2">
                   <Link
                     href={`/admin/contacto/${solicitud.id}`}
-                    className="text-macacha-blue hover:underline dark:text-sky-300"
+                    className="boton-secundario"
                   >
                     {solicitud.nombre}
                   </Link>
