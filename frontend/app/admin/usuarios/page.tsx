@@ -100,7 +100,7 @@ export default function UsuariosPage() {
     return (
       <div className="p-4">
         <p className="text-sm texto-error">No se pudo cargar la lista de usuarios</p>
-        <button onClick={cargar} className="enlace-accion mt-2">
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -173,7 +173,7 @@ export default function UsuariosPage() {
                 <td className="p-2">{usuario.organismo ?? "—"}</td>
                 <td className="p-2">{usuario.activo ? "Sí" : "No"}</td>
                 <td className="p-2">
-                  <button onClick={() => setEditando(usuario)} className="enlace-accion">
+                  <button onClick={() => setEditando(usuario)} className="boton-secundario">
                     Editar
                   </button>
                 </td>
