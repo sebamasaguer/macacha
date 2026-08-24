@@ -41,7 +41,7 @@ export function ListaTextos({
           </div>
         ))}
       </div>
-      <button type="button" onClick={agregar} className="enlace-accion mt-2">
+      <button type="button" onClick={agregar} className="boton-secundario mt-2">
         + Agregar
       </button>
     </div>

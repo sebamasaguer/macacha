@@ -49,7 +49,7 @@ export function ListaFAQ({
           </div>
         ))}
       </div>
-      <button type="button" onClick={agregar} className="enlace-accion mt-2">
+      <button type="button" onClick={agregar} className="boton-secundario mt-2">
         + Agregar pregunta
       </button>
     </div>

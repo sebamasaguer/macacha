@@ -67,7 +67,7 @@ export function TramiteForm({
           <button
             type="button"
             onClick={() => setOrganismoEsNuevo(!organismoEsNuevo)}
-            className="enlace-accion mt-1"
+            className="boton-secundario mt-1"
           >
             {organismoEsNuevo ? "Elegir uno existente" : "Otro… (crear nuevo)"}
           </button>
