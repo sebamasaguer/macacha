@@ -57,7 +57,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               </li>
             )}
           </ul>
-          <button onClick={handleLogout} className="boton-secundario text-left">
+          <button onClick={handleLogout} className="boton-neutro text-left">
             Cerrar sesión
           </button>
         </nav>

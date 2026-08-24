@@ -109,7 +109,7 @@ export function UsuarioForm({
         <button type="submit" disabled={!puedeGuardar || guardando} className="boton-primario">
           {guardando ? "Guardando…" : "Guardar"}
         </button>
-        <button type="button" onClick={onCancelar} className="boton-secundario">
+        <button type="button" onClick={onCancelar} className="boton-neutro">
           Cancelar
         </button>
       </div>

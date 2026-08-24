@@ -142,7 +142,7 @@ export function ContactoHumanoModal({
               <button type="submit" disabled={!puedeEnviar || enviando} className="boton-primario">
                 {enviando ? "Enviando…" : "Enviar"}
               </button>
-              <button type="button" onClick={onCerrar} className="boton-secundario">
+              <button type="button" onClick={onCerrar} className="boton-neutro">
                 Cancelar
               </button>
             </div>
