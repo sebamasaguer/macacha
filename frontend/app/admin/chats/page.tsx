@@ -35,7 +35,7 @@ export default function ChatsPage() {
     return (
       <div className="p-4">
         <p className="text-sm texto-error">No se pudo cargar la lista de chats</p>
-        <button onClick={cargar} className="enlace-accion mt-2">
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -65,7 +65,7 @@ export default function ChatsPage() {
               <td className="p-2">
                 <Link
                   href={`/admin/chats/${sesion.id}`}
-                  className="text-macacha-blue hover:underline dark:text-sky-300"
+                  className="boton-secundario"
                 >
                   {new Date(sesion.creado_en).toLocaleString("es-AR")}
                 </Link>
@@ -90,7 +90,7 @@ export default function ChatsPage() {
         <button
           onClick={() => setPagina((p) => p - 1)}
           disabled={pagina <= 1}
-          className="text-macacha-blue underline disabled:text-gray-400 disabled:no-underline dark:text-sky-300 dark:disabled:text-gray-500"
+          className="boton-secundario"
         >
           Anterior
         </button>
@@ -100,7 +100,7 @@ export default function ChatsPage() {
         <button
           onClick={() => setPagina((p) => p + 1)}
           disabled={pagina >= totalPaginas}
-          className="text-macacha-blue underline disabled:text-gray-400 disabled:no-underline dark:text-sky-300 dark:disabled:text-gray-500"
+          className="boton-secundario"
         >
           Siguiente
         </button>

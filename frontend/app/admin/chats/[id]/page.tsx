@@ -30,7 +30,7 @@ export default function SesionDetallePage() {
     return (
       <div className="p-4">
         <p className="text-sm texto-error">No se pudo cargar la sesión</p>
-        <button onClick={cargar} className="enlace-accion mt-2">
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -45,7 +45,7 @@ export default function SesionDetallePage() {
     return (
       <div className="p-4">
         <p className="text-sm texto-secundario">Sesión no encontrada</p>
-        <Link href="/admin/chats" className="enlace-accion">
+        <Link href="/admin/chats" className="boton-secundario">
           Volver a la lista
         </Link>
       </div>
