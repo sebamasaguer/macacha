@@ -39,7 +39,7 @@ function DetalleTecnico({
 
   return (
     <div className="mt-2 border-t border-gray-300 pt-2 text-sm dark:border-white/20">
-      <button onClick={() => setAbierto(!abierto)} className="enlace-accion">
+      <button onClick={() => setAbierto(!abierto)} className="boton-secundario">
         {abierto ? "Ocultar detalle técnico" : "Ver detalle técnico"}
       </button>
       {abierto && (

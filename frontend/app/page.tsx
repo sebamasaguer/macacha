@@ -40,7 +40,7 @@ function Chat({ sessionId }: { sessionId: string }) {
       <HeaderInstitucional
         subtitulo="Asistente virtual de trámites — Gobierno de Salta"
         linkContacto={{
-          texto: "¿Hablar con una persona?",
+          texto: "Comunicarme con el organismo",
           onClick: () => setModalContactoAbierto(true),
         }}
       />

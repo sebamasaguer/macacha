@@ -19,7 +19,7 @@ export function CopyButton({ texto }: { texto: string }) {
     <button
       type="button"
       onClick={copiar}
-      className="enlace-accion ml-2 text-xs"
+      className="boton-secundario ml-2 text-xs"
       aria-label={`Copiar ${texto}`}
     >
       {estado === "idle" && "Copiar"}

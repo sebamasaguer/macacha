@@ -27,7 +27,7 @@ export function ChatMessage({
                   href={fuente.fuente_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="enlace-accion"
+                  className="boton-secundario"
                 >
                   {fuente.nombre_oficial}
                 </a>
@@ -39,7 +39,7 @@ export function ChatMessage({
         </ul>
       )}
       {mensaje.sugerirContacto && onPedirContacto && (
-        <button onClick={onPedirContacto} className="enlace-accion mt-2 block">
+        <button onClick={onPedirContacto} className="boton-secundario mt-2 block">
           ¿Querés que te ayude una persona? Completá este formulario
         </button>
       )}

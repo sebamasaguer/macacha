@@ -112,7 +112,7 @@ export function TramiteInfoPanel({
                 href={enlace}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded border border-macacha-blue px-3 py-1.5 text-center text-sm text-macacha-blue hover:bg-blue-50 dark:hover:bg-white/10"
+                className="boton-secundario text-center"
               >
                 {enlace}
               </a>
@@ -157,7 +157,7 @@ function BotonDuda({
       type="button"
       onClick={() => onPreguntar(texto)}
       disabled={disabled}
-      className="enlace-accion mt-2 text-xs disabled:opacity-50"
+      className="boton-secundario mt-2 text-xs"
     >
       ¿Tenés dudas sobre esto?
     </button>

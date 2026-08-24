@@ -37,7 +37,10 @@ export function HeaderInstitucional({
         </div>
         <div className="flex items-center gap-4">
           {linkContacto && (
-            <button onClick={linkContacto.onClick} className="enlace-accion">
+            <button
+              onClick={linkContacto.onClick}
+              className="boton-secundario dark:shadow-[0_0_10px_rgba(0,120,201,0.6)]"
+            >
               {linkContacto.texto}
             </button>
           )}
