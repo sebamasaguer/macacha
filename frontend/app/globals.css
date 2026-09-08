@@ -33,10 +33,10 @@
   .texto-error {
     @apply text-red-600 dark:text-red-400;
   }
-  .fondo-degrade-chat {
-    background-color: #fafbfc;
-  }
-  .dark .fondo-degrade-chat {
-    background: radial-gradient(ellipse at top right, #3a1a4a 0%, #1a1a3a 35%, #121b23 70%);
+  .fondo-aurora-chat {
+    background:
+      radial-gradient(circle at 12% 10%, rgba(241, 68, 111, 0.35) 0%, transparent 32%),
+      radial-gradient(circle at 86% 82%, rgba(62, 35, 220, 0.42) 0%, transparent 38%),
+      linear-gradient(135deg, #070b2a 0%, #26104f 48%, #10184a 100%);
   }
 }
