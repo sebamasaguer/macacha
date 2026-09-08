@@ -1,6 +1,6 @@
 export function PanelMarca() {
   return (
-    <aside className="hidden min-[1351px]:flex min-[1351px]:w-[300px] min-[1351px]:flex-none min-[1351px]:flex-col min-[1351px]:justify-between min-[1351px]:border-r min-[1351px]:border-white/12 min-[1351px]:bg-gradient-to-br min-[1351px]:from-white/[0.06] min-[1351px]:to-white/[0.015] min-[1351px]:p-10 min-[1351px]:text-white">
+    <aside className="hidden min-[1351px]:flex min-[1351px]:w-[300px] min-[1351px]:flex-none min-[1351px]:flex-col min-[1351px]:justify-between min-[1351px]:border-r min-[1351px]:border-white/10 min-[1351px]:bg-gradient-to-br min-[1351px]:from-white/[0.06] min-[1351px]:to-white/[0.015] min-[1351px]:p-10 min-[1351px]:text-white">
       <div>
         <img
           src="/branding/macacha-icon.png"

@@ -62,7 +62,7 @@ function Chat({ sessionId }: { sessionId: string }) {
               >
                 Ficha del trámite
               </button>
-              <span className="inline-flex flex-none items-center gap-2 rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-xs font-bold text-white/85">
+              <span className="inline-flex flex-none items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-white/85">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
                 Activa
               </span>
