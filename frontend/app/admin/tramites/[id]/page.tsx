@@ -81,7 +81,7 @@ export default function EditarTramitePage() {
   return (
     <div>
       {confirmacion && (
-        <p className="p-4 pb-0 text-sm text-green-700 dark:text-green-400">{confirmacion}</p>
+        <p className="p-4 pb-0 text-sm text-green-700">{confirmacion}</p>
       )}
       <TramiteForm
         valoresIniciales={tramite}

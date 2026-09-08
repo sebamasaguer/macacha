@@ -76,7 +76,7 @@ export default function ChatsPage() {
                 {sesion.tramites_citados.map((id) => (
                   <span
                     key={id}
-                    className="mr-1 rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-white/10"
+                    className="mr-1 rounded bg-gray-100 px-2 py-0.5 text-xs"
                   >
                     {id}
                   </span>

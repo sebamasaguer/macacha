@@ -128,7 +128,7 @@ export default function UsuariosPage() {
         </div>
         <button
           onClick={handleCrearOrganismo}
-          className="rounded bg-gray-200 px-3 py-1.5 text-sm hover:bg-gray-300 dark:bg-white/10 dark:hover:bg-white/20"
+          className="rounded bg-gray-200 px-3 py-1.5 text-sm hover:bg-gray-300"
         >
           Crear organismo
         </button>
