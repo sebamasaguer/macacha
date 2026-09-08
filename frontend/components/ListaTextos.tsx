@@ -25,7 +25,7 @@ export function ListaTextos({
 
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium">{etiqueta}</label>
+      <label className="campo-label">{etiqueta}</label>
       <div className="space-y-2">
         {valores.map((valor, indice) => (
           <div key={indice} className="flex gap-2">
@@ -33,15 +33,15 @@ export function ListaTextos({
               type="text"
               value={valor}
               onChange={(e) => actualizar(indice, e.target.value)}
-              className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
+              className="campo-input flex-1"
             />
-            <button type="button" onClick={() => quitar(indice)} className="text-sm text-red-600">
+            <button type="button" onClick={() => quitar(indice)} className="text-sm texto-error">
               Quitar
             </button>
           </div>
         ))}
       </div>
-      <button type="button" onClick={agregar} className="mt-2 text-sm text-blue-700 underline">
+      <button type="button" onClick={agregar} className="boton-secundario mt-2">
         + Agregar
       </button>
     </div>

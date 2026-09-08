@@ -27,14 +27,14 @@ export default function TramitesPage() {
   }
 
   if (cargando) {
-    return <p className="p-4 text-sm text-gray-500">Cargando…</p>;
+    return <p className="p-4 text-sm texto-secundario">Cargando…</p>;
   }
 
   if (error) {
     return (
       <div className="p-4">
-        <p className="text-sm text-red-600">No se pudo cargar la lista de trámites</p>
-        <button onClick={cargar} className="mt-2 text-sm text-blue-700 underline">
+        <p className="text-sm texto-error">No se pudo cargar la lista de trámites</p>
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -45,16 +45,16 @@ export default function TramitesPage() {
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-semibold">Trámites</h1>
-        <Link href="/admin/tramites/nuevo" className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white">
+        <Link href="/admin/tramites/nuevo" className="boton-primario">
           Nuevo trámite
         </Link>
       </div>
       {tramites && tramites.length === 0 ? (
-        <p className="text-sm text-gray-500">Todavía no hay trámites cargados</p>
+        <p className="text-sm texto-secundario">Todavía no hay trámites cargados</p>
       ) : (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-left">
+            <tr className="tabla-cabecera">
               <th className="p-2">ID</th>
               <th className="p-2">Nombre</th>
               <th className="p-2">Organismo</th>
@@ -65,9 +65,12 @@ export default function TramitesPage() {
           </thead>
           <tbody>
             {tramites!.map((tramite) => (
-              <tr key={tramite.id} className="border-b border-gray-100">
+              <tr key={tramite.id} className="tabla-fila">
                 <td className="p-2">
-                  <Link href={`/admin/tramites/${tramite.id}`} className="text-blue-700 hover:underline">
+                  <Link
+                    href={`/admin/tramites/${tramite.id}`}
+                    className="boton-secundario"
+                  >
                     {tramite.id}
                   </Link>
                 </td>

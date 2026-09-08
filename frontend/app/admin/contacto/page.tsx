@@ -27,14 +27,14 @@ export default function ContactoPage() {
   }
 
   if (cargando) {
-    return <p className="p-4 text-sm text-gray-500">Cargando…</p>;
+    return <p className="p-4 text-sm texto-secundario">Cargando…</p>;
   }
 
   if (error) {
     return (
       <div className="p-4">
-        <p className="text-sm text-red-600">No se pudo cargar la lista de contacto</p>
-        <button onClick={cargar} className="mt-2 text-sm text-blue-700 underline">
+        <p className="text-sm texto-error">No se pudo cargar la lista de contacto</p>
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -45,11 +45,11 @@ export default function ContactoPage() {
     <div className="p-4">
       <h1 className="mb-4 text-lg font-semibold">Contacto</h1>
       {solicitudes && solicitudes.length === 0 ? (
-        <p className="text-sm text-gray-500">Todavía no hay solicitudes de contacto</p>
+        <p className="text-sm texto-secundario">Todavía no hay solicitudes de contacto</p>
       ) : (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-left">
+            <tr className="tabla-cabecera">
               <th className="p-2">Fecha</th>
               <th className="p-2">Nombre</th>
               <th className="p-2">Trámite</th>
@@ -59,12 +59,12 @@ export default function ContactoPage() {
           </thead>
           <tbody>
             {solicitudes!.map((solicitud) => (
-              <tr key={solicitud.id} className="border-b border-gray-100">
+              <tr key={solicitud.id} className="tabla-fila">
                 <td className="p-2">{new Date(solicitud.creado_en).toLocaleString()}</td>
                 <td className="p-2">
                   <Link
                     href={`/admin/contacto/${solicitud.id}`}
-                    className="text-blue-700 hover:underline"
+                    className="boton-secundario"
                   >
                     {solicitud.nombre}
                   </Link>

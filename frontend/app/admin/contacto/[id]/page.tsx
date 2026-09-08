@@ -48,8 +48,8 @@ export default function ContactoDetallePage() {
   if (error) {
     return (
       <div className="p-4">
-        <p className="text-sm text-red-600">No se pudo cargar la solicitud</p>
-        <button onClick={cargar} className="mt-2 text-sm text-blue-700 underline">
+        <p className="text-sm texto-error">No se pudo cargar la solicitud</p>
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -57,14 +57,14 @@ export default function ContactoDetallePage() {
   }
 
   if (solicitud === undefined) {
-    return <p className="p-4 text-sm text-gray-500">Cargando…</p>;
+    return <p className="p-4 text-sm texto-secundario">Cargando…</p>;
   }
 
   if (solicitud === null) {
     return (
       <div className="p-4">
-        <p className="text-sm text-gray-600">Solicitud no encontrada</p>
-        <Link href="/admin/contacto" className="text-sm text-blue-700 underline">
+        <p className="text-sm texto-secundario">Solicitud no encontrada</p>
+        <Link href="/admin/contacto" className="boton-secundario">
           Volver a la lista
         </Link>
       </div>
@@ -73,7 +73,7 @@ export default function ContactoDetallePage() {
 
   return (
     <div className="p-4">
-      <div className="mb-4 max-w-2xl rounded border border-gray-200 p-4">
+      <div className="tarjeta mb-4 max-w-2xl">
         <p><span className="font-semibold">Nombre:</span> {solicitud.nombre}</p>
         <p><span className="font-semibold">Email:</span> {solicitud.email}</p>
         <p><span className="font-semibold">Teléfono:</span> {solicitud.telefono}</p>
@@ -83,13 +83,13 @@ export default function ContactoDetallePage() {
         <button
           onClick={handleCambiarEstado}
           disabled={actualizandoEstado}
-          className="mt-3 rounded bg-blue-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="boton-primario mt-3"
         >
           {solicitud.estado === "pendiente" ? "Marcar como resuelto" : "Marcar como pendiente"}
         </button>
       </div>
 
-      <h2 className="mb-2 text-sm font-semibold text-gray-600">Conversación completa</h2>
+      <h2 className="mb-2 text-sm font-semibold texto-secundario">Conversación completa</h2>
       <ConversacionChat mensajes={solicitud.mensajes} />
     </div>
   );

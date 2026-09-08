@@ -19,9 +19,9 @@ export function ChatInput({
   }
 
   return (
-    <div className="flex gap-2 border-t border-gray-200 p-4">
+    <div className="flex gap-2 border-t border-gray-200 p-4 dark:border-white/10">
       <textarea
-        className="flex-1 resize-none rounded border border-gray-300 p-2"
+        className="campo-input flex-1 resize-none"
         rows={2}
         value={texto}
         disabled={disabled}
@@ -34,11 +34,7 @@ export function ChatInput({
         }}
         placeholder="Escribí tu consulta sobre un trámite..."
       />
-      <button
-        className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-        disabled={disabled || !texto.trim()}
-        onClick={enviar}
-      >
+      <button className="boton-primario" disabled={disabled || !texto.trim()} onClick={enviar}>
         Enviar
       </button>
     </div>

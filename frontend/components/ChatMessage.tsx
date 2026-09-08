@@ -13,10 +13,13 @@ export function ChatMessage({
   const esUsuario = mensaje.rol === "user";
 
   return (
-    <BurbujaMensaje esUsuario={esUsuario} className={mensaje.error ? "border border-red-500" : ""}>
+    <BurbujaMensaje
+      esUsuario={esUsuario}
+      className={mensaje.error ? "border border-red-500 dark:border-red-400" : ""}
+    >
       <p className="whitespace-pre-wrap">{mensaje.contenido}</p>
       {mensaje.fuentes && mensaje.fuentes.length > 0 && (
-        <ul className="mt-2 border-t border-gray-300 pt-2 text-sm">
+        <ul className="mt-2 border-t border-gray-300 pt-2 text-sm dark:border-white/20">
           {mensaje.fuentes.map((fuente) => (
             <li key={fuente.tramite_id}>
               {fuente.fuente_url ? (
@@ -24,7 +27,7 @@ export function ChatMessage({
                   href={fuente.fuente_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-700 underline"
+                  className="boton-secundario"
                 >
                   {fuente.nombre_oficial}
                 </a>
@@ -36,18 +39,12 @@ export function ChatMessage({
         </ul>
       )}
       {mensaje.sugerirContacto && onPedirContacto && (
-        <button
-          onClick={onPedirContacto}
-          className="mt-2 block text-sm text-blue-700 underline"
-        >
+        <button onClick={onPedirContacto} className="boton-secundario mt-2 block">
           ¿Querés que te ayude una persona? Completá este formulario
         </button>
       )}
       {mensaje.error && onReintentar && (
-        <button
-          onClick={onReintentar}
-          className="mt-2 text-sm text-red-700 underline"
-        >
+        <button onClick={onReintentar} className="texto-error mt-2 text-sm underline">
           Reintentar
         </button>
       )}

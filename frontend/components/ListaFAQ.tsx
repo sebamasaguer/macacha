@@ -25,31 +25,31 @@ export function ListaFAQ({
 
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium">Preguntas frecuentes</label>
+      <label className="campo-label">Preguntas frecuentes</label>
       <div className="space-y-3">
         {valores.map((faq, indice) => (
-          <div key={indice} className="space-y-1 rounded border border-gray-200 p-2">
+          <div key={indice} className="tarjeta space-y-1 p-2">
             <input
               type="text"
               placeholder="Pregunta"
               value={faq.pregunta}
               onChange={(e) => actualizar(indice, "pregunta", e.target.value)}
-              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+              className="campo-input w-full"
             />
             <input
               type="text"
               placeholder="Respuesta"
               value={faq.respuesta}
               onChange={(e) => actualizar(indice, "respuesta", e.target.value)}
-              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+              className="campo-input w-full"
             />
-            <button type="button" onClick={() => quitar(indice)} className="text-sm text-red-600">
+            <button type="button" onClick={() => quitar(indice)} className="text-sm texto-error">
               Quitar
             </button>
           </div>
         ))}
       </div>
-      <button type="button" onClick={agregar} className="mt-2 text-sm text-blue-700 underline">
+      <button type="button" onClick={agregar} className="boton-secundario mt-2">
         + Agregar pregunta
       </button>
     </div>

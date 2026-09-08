@@ -12,7 +12,7 @@ export function TramitesAmbiguosPanel({
   preguntarDeshabilitado: boolean;
 }) {
   return (
-    <div>
+    <div className="text-gray-900 dark:text-gray-100">
       <h2 className="font-semibold">¿Cuál de estos trámites te interesa?</h2>
       <ul className="mt-2 space-y-3">
         {candidatos.map((candidato) => (
@@ -21,10 +21,10 @@ export function TramitesAmbiguosPanel({
               type="button"
               onClick={() => onPreguntar(`Quiero información sobre ${candidato.nombre_oficial}.`)}
               disabled={preguntarDeshabilitado}
-              className="w-full rounded border border-gray-200 p-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50"
+              className="w-full rounded border border-gray-200 p-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50 dark:border-white/15 dark:hover:bg-white/5"
             >
               <span className="font-medium">{candidato.nombre_oficial}</span>
-              <p className="mt-1 text-gray-500">{candidato.descripcion}</p>
+              <p className="mt-1 texto-secundario">{candidato.descripcion}</p>
             </button>
           </li>
         ))}

@@ -62,8 +62,8 @@ export default function EditarTramitePage() {
   if (cargandoError) {
     return (
       <div className="p-4">
-        <p className="text-sm text-red-600">No se pudo cargar el trámite</p>
-        <button onClick={cargar} className="mt-2 text-sm text-blue-700 underline">
+        <p className="text-sm texto-error">No se pudo cargar el trámite</p>
+        <button onClick={cargar} className="boton-secundario mt-2">
           Reintentar
         </button>
       </div>
@@ -71,16 +71,18 @@ export default function EditarTramitePage() {
   }
 
   if (tramite === undefined) {
-    return <p className="p-4 text-sm text-gray-500">Cargando…</p>;
+    return <p className="p-4 text-sm texto-secundario">Cargando…</p>;
   }
 
   if (tramite === null) {
-    return <p className="p-4 text-sm text-gray-600">Trámite no encontrado</p>;
+    return <p className="p-4 text-sm texto-secundario">Trámite no encontrado</p>;
   }
 
   return (
     <div>
-      {confirmacion && <p className="p-4 pb-0 text-sm text-green-700">{confirmacion}</p>}
+      {confirmacion && (
+        <p className="p-4 pb-0 text-sm text-green-700 dark:text-green-400">{confirmacion}</p>
+      )}
       <TramiteForm
         valoresIniciales={tramite}
         organismosExistentes={organismos}

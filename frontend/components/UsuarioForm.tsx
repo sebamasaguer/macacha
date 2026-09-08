@@ -38,36 +38,36 @@ export function UsuarioForm({
     (datos.rol === "super_admin" || datos.organismo_id !== null);
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md space-y-3 rounded border border-gray-200 p-4">
+    <form onSubmit={handleSubmit} className="tarjeta max-w-md space-y-3">
       <div>
-        <label className="mb-1 block text-sm font-medium">Email</label>
+        <label className="campo-label">Email</label>
         <input
           type="email"
           value={datos.email}
           disabled={esEdicion}
           onChange={(e) => actualizar("email", e.target.value)}
-          className="w-full rounded border border-gray-300 px-2 py-1 text-sm disabled:bg-gray-100"
+          className="campo-input w-full"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">
+        <label className="campo-label">
           {esEdicion ? "Nueva contraseña (dejar en blanco para no cambiar)" : "Contraseña"}
         </label>
         <input
           type="password"
           value={datos.password}
           onChange={(e) => actualizar("password", e.target.value)}
-          className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+          className="campo-input w-full"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Rol</label>
+        <label className="campo-label">Rol</label>
         <select
           value={datos.rol}
           onChange={(e) => actualizar("rol", e.target.value as UsuarioFormValores["rol"])}
-          className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+          className="campo-input w-full"
         >
           <option value="admin_organismo">Admin de organismo</option>
           <option value="super_admin">Super admin</option>
@@ -76,11 +76,11 @@ export function UsuarioForm({
 
       {datos.rol === "admin_organismo" && (
         <div>
-          <label className="mb-1 block text-sm font-medium">Organismo</label>
+          <label className="campo-label">Organismo</label>
           <select
             value={datos.organismo_id ?? ""}
             onChange={(e) => actualizar("organismo_id", e.target.value ? Number(e.target.value) : null)}
-            className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+            className="campo-input w-full"
           >
             <option value="">Elegir…</option>
             {organismos.map((organismo) => (
@@ -103,21 +103,13 @@ export function UsuarioForm({
         </label>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm texto-error">{error}</p>}
 
       <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={!puedeGuardar || guardando}
-          className="rounded bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
-        >
+        <button type="submit" disabled={!puedeGuardar || guardando} className="boton-primario">
           {guardando ? "Guardando…" : "Guardar"}
         </button>
-        <button
-          type="button"
-          onClick={onCancelar}
-          className="rounded px-4 py-2 text-sm text-gray-500"
-        >
+        <button type="button" onClick={onCancelar} className="boton-neutro">
           Cancelar
         </button>
       </div>

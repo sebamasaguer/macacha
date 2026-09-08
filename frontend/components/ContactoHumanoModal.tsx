@@ -55,31 +55,30 @@ export function ContactoHumanoModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6">
+      <div className="w-full max-w-md rounded-lg bg-white p-6 dark:border dark:border-white/15 dark:bg-macacha-navy">
         {enviado ? (
           <div>
-            <p className="text-sm text-gray-800">
+            <p className="text-sm text-gray-800 dark:text-gray-100">
               Recibimos tu consulta. Alguien del área correspondiente se va a poner en
               contacto con vos.
             </p>
-            <button
-              onClick={onCerrar}
-              className="mt-4 rounded bg-blue-600 px-4 py-2 text-sm text-white"
-            >
+            <button onClick={onCerrar} className="boton-primario mt-4">
               Cerrar
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
-            <h2 className="text-lg font-semibold">Hablar con una persona</h2>
+            <h2 className="text-lg font-semibold text-macacha-navy dark:text-white">
+              Hablar con una persona
+            </h2>
 
             {tramites.length > 1 && (
               <div>
-                <label className="mb-1 block text-sm font-medium">¿Sobre qué trámite?</label>
+                <label className="campo-label">¿Sobre qué trámite?</label>
                 <select
                   value={tramiteId ?? ""}
                   onChange={(e) => setTramiteId(e.target.value || null)}
-                  className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                  className="campo-input w-full"
                 >
                   <option value="">Elegir…</option>
                   {tramites.map((t) => (
@@ -91,67 +90,59 @@ export function ContactoHumanoModal({
               </div>
             )}
             {tramites.length === 1 && (
-              <p className="text-sm text-gray-600">Trámite: {tramites[0].nombre_oficial}</p>
+              <p className="text-sm texto-secundario">Trámite: {tramites[0].nombre_oficial}</p>
             )}
             {tramites.length === 0 && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm texto-secundario">
                 No identificamos un trámite en esta conversación — tu consulta la recibe el
                 equipo general.
               </p>
             )}
 
             <div>
-              <label className="mb-1 block text-sm font-medium">Nombre</label>
+              <label className="campo-label">Nombre</label>
               <input
                 type="text"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                className="campo-input w-full"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Email</label>
+              <label className="campo-label">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                className="campo-input w-full"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Teléfono / WhatsApp</label>
+              <label className="campo-label">Teléfono / WhatsApp</label>
               <input
                 type="text"
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
-                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                className="campo-input w-full"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Tu consulta</label>
+              <label className="campo-label">Tu consulta</label>
               <textarea
                 value={consulta}
                 onChange={(e) => setConsulta(e.target.value)}
-                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                className="campo-input w-full"
                 rows={3}
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm texto-error">{error}</p>}
 
             <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={!puedeEnviar || enviando}
-                className="rounded bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
-              >
+              <button type="submit" disabled={!puedeEnviar || enviando} className="boton-primario">
                 {enviando ? "Enviando…" : "Enviar"}
               </button>
-              <button
-                type="button"
-                onClick={onCerrar}
-                className="rounded px-4 py-2 text-sm text-gray-500"
-              >
+              <button type="button" onClick={onCerrar} className="boton-neutro">
                 Cancelar
               </button>
             </div>
