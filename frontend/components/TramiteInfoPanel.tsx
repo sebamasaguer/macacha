@@ -112,7 +112,7 @@ export function TramiteInfoPanel({
                 href={enlace}
                 target="_blank"
                 rel="noreferrer"
-                className="boton-secundario text-center"
+                className="boton-secundario block w-full break-all text-center"
               >
                 {enlace}
               </a>

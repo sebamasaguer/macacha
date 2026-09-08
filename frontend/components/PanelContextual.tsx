@@ -27,7 +27,7 @@ export function PanelContextual({
         }`}
         aria-label="Información contextual del trámite"
       >
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="scroll-chat flex-1 overflow-y-auto p-5">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <p className="mb-1 text-xs font-extrabold uppercase tracking-widest text-sky-300">

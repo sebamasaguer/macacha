@@ -72,7 +72,7 @@ function Chat({ sessionId }: { sessionId: string }) {
             </div>
           </header>
 
-          <div className="flex-1 space-y-3 overflow-y-auto p-5">
+          <div className="scroll-chat flex-1 space-y-3 overflow-y-auto p-5">
             {mensajes.map((mensaje, indice) => (
               <ChatMessage
                 key={indice}

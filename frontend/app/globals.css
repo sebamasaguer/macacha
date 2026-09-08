@@ -39,4 +39,22 @@
       radial-gradient(circle at 86% 82%, rgba(62, 35, 220, 0.42) 0%, transparent 38%),
       linear-gradient(135deg, #070b2a 0%, #26104f 48%, #10184a 100%);
   }
+  .scroll-chat {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+  }
+  .scroll-chat::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-chat::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scroll-chat::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+  }
+  .scroll-chat::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+  }
 }
