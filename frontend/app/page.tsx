@@ -42,6 +42,9 @@ function Chat({ sessionId }: { sessionId: string }) {
         <div className="flex min-w-0 flex-1 flex-col bg-black/20">
           <header className="flex min-h-[86px] flex-none items-center justify-between gap-4 border-b border-white/10 bg-white/[0.035] px-4 py-3 md:px-6">
             <div className="flex min-w-0 items-center gap-3">
+              <span className="flex-none rounded-md bg-white px-2 py-1">
+                <img src="/branding/logo-salta.svg" alt="Gobierno de Salta" className="h-6 w-auto" />
+              </span>
               <img
                 src="/branding/macacha-icon.png"
                 alt=""
