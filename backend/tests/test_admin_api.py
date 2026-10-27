@@ -157,7 +157,12 @@ def test_me_con_cookie_valida_devuelve_email(db_conn, clean_db, monkeypatch):
         api.app.dependency_overrides.clear()
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == {"email": email, "rol": "super_admin", "organismo": None}
+    assert respuesta.json() == {
+        "email": email,
+        "rol": "super_admin",
+        "organismo": None,
+        "puede_crear_formularios": True,
+    }
 
 
 def test_logout_borra_la_cookie(db_conn, clean_db, monkeypatch):

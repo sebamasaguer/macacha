@@ -20,6 +20,9 @@ def test_extension_and_tables_exist(db_conn):
             "mensajes",
             "admins",
             "solicitudes_contacto",
+            "formularios",
+            "formulario_campos",
+            "formulario_respuestas",
             "feedback_respuestas",
         } <= tables
 
@@ -45,3 +48,17 @@ def test_organismos_tiene_columna_email_contacto(db_conn):
             """
         )
         assert cur.fetchone() is not None
+
+
+def test_admins_tiene_la_columna_puede_crear_formularios(db_conn):
+    with db_conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT data_type, is_nullable, column_default
+            FROM information_schema.columns
+            WHERE table_name = 'admins' AND column_name = 'puede_crear_formularios'
+            """
+        )
+        fila = cur.fetchone()
+    assert fila is not None
+    assert fila[0] == "boolean" and fila[1] == "NO" and "false" in fila[2]

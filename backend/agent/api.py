@@ -388,7 +388,26 @@ def admin_me(admin: AdminActual = Depends(requiere_admin), pool=Depends(obtener_
             if admin_db["organismo_id"] is not None
             else None
         )
-    return {"email": admin_db["email"], "rol": admin_db["rol"], "organismo": organismo}
+    puede = admin_db["rol"] == "super_admin" or admin_db["puede_crear_formularios"]
+    return {
+        "email": admin_db["email"],
+        "rol": admin_db["rol"],
+        "organismo": organismo,
+        "puede_crear_formularios": puede,
+    }
+
+
+def requiere_gestor_de_formularios(
+    admin: AdminActual = Depends(requiere_admin), pool=Depends(obtener_pool)
+) -> AdminActual:
+    """El permiso se lee de la base en cada pedido: activarlo o retirarlo tiene efecto inmediato."""
+    if admin.rol == "super_admin":
+        return admin
+    with pool.connection() as conn:
+        admin_db = admin_repository.obtener_admin_por_id(conn, admin.id)
+    if admin_db is None or not admin_db["activo"] or not admin_db["puede_crear_formularios"]:
+        raise HTTPException(status_code=403, detail="No tenés permiso para gestionar formularios")
+    return admin
 
 
 @app.get("/admin/sesiones")
@@ -588,6 +607,7 @@ class UsuarioPayload(BaseModel):
     password: str = Field(min_length=8)
     rol: Literal["super_admin", "admin_organismo"]
     organismo_id: int | None = None
+    puede_crear_formularios: bool = False
 
 
 class UsuarioEdicionPayload(BaseModel):
@@ -595,6 +615,7 @@ class UsuarioEdicionPayload(BaseModel):
     organismo_id: int | None = None
     activo: bool
     password: str | None = Field(default=None, min_length=8)
+    puede_crear_formularios: bool | None = None
 
 
 def _validar_consistencia_rol_organismo(rol: str, organismo_id: int | None) -> None:
@@ -628,7 +649,12 @@ def admin_crear_usuario(
         if admin_repository.obtener_admin_por_email(conn, request.email) is not None:
             raise HTTPException(status_code=409, detail="Ya existe un admin con ese email")
         admin_repository.crear_admin(
-            conn, request.email, password_hash, request.rol, request.organismo_id
+            conn,
+            request.email,
+            password_hash,
+            request.rol,
+            request.organismo_id,
+            puede_crear_formularios=request.puede_crear_formularios and request.rol == "admin_organismo",
         )
         conn.commit()
     return {"ok": True}
@@ -646,8 +672,19 @@ def admin_editar_usuario(
     with pool.connection() as conn:
         if admin_repository.obtener_admin_por_id(conn, str(admin_id)) is None:
             raise HTTPException(status_code=404, detail="Admin no encontrado")
+        puede = (
+            None
+            if request.puede_crear_formularios is None
+            else request.puede_crear_formularios and request.rol == "admin_organismo"
+        )
         admin_repository.editar_admin(
-            conn, str(admin_id), request.rol, request.organismo_id, request.activo, password_hash
+            conn,
+            str(admin_id),
+            request.rol,
+            request.organismo_id,
+            request.activo,
+            password_hash,
+            puede_crear_formularios=puede,
         )
         conn.commit()
     return {"ok": True}

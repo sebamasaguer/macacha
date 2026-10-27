@@ -60,6 +60,7 @@ def test_obtener_admin_por_id(db_conn, clean_db):
         "rol": "admin_organismo",
         "organismo_id": None,
         "activo": True,
+        "puede_crear_formularios": False,
     }
 
 

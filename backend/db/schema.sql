@@ -129,3 +129,55 @@ ALTER TABLE organismos ADD CONSTRAINT organismos_email_contacto_largo
 
 ALTER TABLE solicitudes_contacto ADD COLUMN IF NOT EXISTS resuelto_por_email TEXT;
 ALTER TABLE solicitudes_contacto ADD COLUMN IF NOT EXISTS resuelto_en TIMESTAMPTZ;
+
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS puede_crear_formularios BOOLEAN NOT NULL DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS formularios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organismo_id INTEGER NOT NULL REFERENCES organismos(id),
+    nombre TEXT NOT NULL,
+    descripcion_uso TEXT NOT NULL DEFAULT '',
+    aviso_finalidad TEXT NOT NULL DEFAULT '',
+    tramite_id TEXT REFERENCES tramites(id),
+    estado TEXT NOT NULL DEFAULT 'borrador',
+    fecha_cierre TIMESTAMPTZ,
+    cupo INTEGER,
+    creado_por_email TEXT NOT NULL,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+    actualizado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT formularios_estado_valido CHECK (estado IN ('borrador', 'activo', 'cerrado')),
+    CONSTRAINT formularios_cupo_positivo CHECK (cupo IS NULL OR cupo > 0)
+);
+
+CREATE INDEX IF NOT EXISTS formularios_organismo_idx ON formularios (organismo_id, creado_en DESC);
+
+CREATE TABLE IF NOT EXISTS formulario_campos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    formulario_id UUID NOT NULL REFERENCES formularios(id),
+    clave TEXT NOT NULL,
+    etiqueta TEXT NOT NULL,
+    tipo TEXT NOT NULL,
+    obligatorio BOOLEAN NOT NULL DEFAULT true,
+    opciones JSONB,
+    orden INTEGER NOT NULL,
+    UNIQUE (formulario_id, clave),
+    CONSTRAINT formulario_campos_tipo_valido CHECK (
+        tipo IN ('texto', 'texto_largo', 'dni', 'telefono', 'email', 'numero', 'fecha', 'si_no', 'opcion')
+    )
+);
+
+CREATE TABLE IF NOT EXISTS formulario_respuestas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    formulario_id UUID NOT NULL REFERENCES formularios(id),
+    session_id UUID NOT NULL REFERENCES sesiones(id),
+    valores JSONB NOT NULL,
+    dni TEXT,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+    eliminada_en TIMESTAMPTZ,
+    eliminada_por_email TEXT
+);
+
+CREATE INDEX IF NOT EXISTS formulario_respuestas_formulario_idx ON formulario_respuestas (formulario_id, creado_en DESC);
+CREATE INDEX IF NOT EXISTS formulario_respuestas_session_idx ON formulario_respuestas (session_id);
+CREATE UNIQUE INDEX IF NOT EXISTS formulario_respuestas_dni_unico
+    ON formulario_respuestas (formulario_id, dni) WHERE dni IS NOT NULL AND eliminada_en IS NULL;
