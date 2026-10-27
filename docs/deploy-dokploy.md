@@ -106,6 +106,14 @@ Guardá el resultado — se usa en el paso 4.
    /admin/contacto` y el detalle devuelven 500 (leen las columnas nuevas). Las
    solicitudes que ya estaban resueltas muestran "Sin registro".
 
+   Los formularios por organismo agregan la columna `admins.puede_crear_formularios` y las tablas `formularios`,
+   `formulario_campos` y `formulario_respuestas`. Mismo orden obligatorio: **primero** correr el esquema,
+   **después** el backend y por último el frontend. Si el backend sale antes que el esquema, `GET /admin/me`,
+   `/admin/usuarios` y `/admin/formularios*` devuelven 500 y el asistente falla al consultar formularios. Ningún
+   usuario de organismo puede crear formularios hasta que el super admin lo habilite desde Usuarios. Las respuestas
+   guardan el DNI y el teléfono de la ciudadanía: antes de usarlo en producción conviene definir la política de
+   privacidad y de retención de esos datos.
+
 ## 3. Push a GitHub
 
 Si todavía no existe el repo remoto, creá uno privado (desde la web de
