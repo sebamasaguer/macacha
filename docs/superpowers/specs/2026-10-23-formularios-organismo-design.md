@@ -152,7 +152,7 @@ deshace la respuesta, igual que en Contacto.
   formularios se consultaron.
 - **`guardar_respuesta_formulario(formulario_id, valores, confirmado)`**: valida y guarda. Devuelve `{ok: true}` o
   `{ok: false, motivo, errores}` con `motivo` en `no_confirmado`, `formulario_no_consultado`, `cerrado`, `cupo`,
-  `duplicado`, `limite_sesion` o `datos_invalidos` (con el error de cada campo para que el asistente repregunte).
+  `duplicado`, `limite_sesion`, `ya_registrada` (la sesión ya envió ese formulario) o `datos_invalidos` (con el error de cada campo para que el asistente repregunte).
 
 ### Defensas del servidor
 

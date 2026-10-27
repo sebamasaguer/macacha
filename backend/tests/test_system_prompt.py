@@ -75,3 +75,32 @@ def test_no_promete_el_formulario_sin_llamar_a_ofrecer_contacto_humano():
     prompt = _normalizado()
 
     assert "Nunca le digas que va a aparecer un formulario de contacto" in prompt
+
+
+def test_ordena_buscar_formularios_cuando_la_persona_quiere_anotarse():
+    prompt = _normalizado()
+
+    assert "llamá a buscar_formularios" in prompt
+    assert "anotarse, inscribirse o completar un formulario" in prompt
+
+
+def test_exige_avisar_la_finalidad_antes_de_pedir_datos():
+    prompt = _normalizado()
+
+    assert "qué organismo los recibe y para qué" in prompt
+    assert "dejá que decida si sigue" in prompt
+
+
+def test_exige_resumir_y_confirmar_antes_de_guardar_y_permite_cancelar():
+    prompt = _normalizado()
+
+    assert "resumilos y preguntale si son correctos" in prompt
+    assert "guardar_respuesta_formulario con confirmado en verdadero" in prompt
+    assert "no guardes nada" in prompt
+
+
+def test_prohibe_decir_que_se_guardo_sin_que_la_herramienta_lo_confirme():
+    prompt = _normalizado()
+
+    assert "Nunca digas que quedó registrado" in prompt
+    assert "nunca inventes datos" in prompt

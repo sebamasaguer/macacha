@@ -1,3 +1,4 @@
+from agent import formularios_tools
 from ingest.repository import obtener_snapshot_vigente
 from retrieval.hybrid_search import buscar_chunks
 
@@ -123,6 +124,57 @@ TOOL_SCHEMAS = [
             "parameters": {"type": "object", "properties": {}},
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "buscar_formularios",
+            "description": (
+                "Busca los formularios de inscripción o registro que algún organismo tiene abiertos (por ejemplo, "
+                "inscripción a una capacitación). Usala cuando la persona quiera anotarse, inscribirse o completar "
+                "un formulario, o cuando lo que cuenta coincida con uno. Devuelve, por cada formulario, para qué se "
+                "usan los datos (aviso_finalidad) y los campos que hay que pedir."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "consulta": {
+                        "type": "string",
+                        "description": "Lo que la persona quiere hacer, con sus palabras.",
+                    },
+                    "tramite_id": {
+                        "type": "string",
+                        "description": "El ID del trámite de la conversación, si ya está identificado (ej. 'TR-0001').",
+                    },
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "guardar_respuesta_formulario",
+            "description": (
+                "Guarda los datos que la persona dio para un formulario. Llamala solo después de haber consultado el "
+                "formulario con buscar_formularios, de haber resumido los datos y de que la persona confirmó que son "
+                "correctos. Si devuelve errores por campo, repreguntá solo esos datos."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "formulario_id": {"type": "string", "description": "El id del formulario devuelto por buscar_formularios."},
+                    "valores": {
+                        "type": "object",
+                        "description": "Un valor por cada campo, usando la clave del campo (ej. {\"dni\": \"30123456\"}).",
+                    },
+                    "confirmado": {
+                        "type": "boolean",
+                        "description": "Verdadero solo si la persona confirmó explícitamente que los datos resumidos son correctos.",
+                    },
+                },
+                "required": ["formulario_id", "valores", "confirmado"],
+            },
+        },
+    },
 ]
 
 
@@ -186,7 +238,7 @@ def ofrecer_contacto_humano() -> dict:
     return {"sugerido": True}
 
 
-def ejecutar_tool(nombre: str, argumentos: dict, conn, embed_fn, rerank_fn):
+def ejecutar_tool(nombre: str, argumentos: dict, conn, embed_fn, rerank_fn, session_id: str | None = None):
     if nombre == "buscar_tramite":
         return buscar_tramite(conn, embed_fn, rerank_fn, argumentos["query"])
     if nombre == "obtener_requisitos":
@@ -203,4 +255,8 @@ def ejecutar_tool(nombre: str, argumentos: dict, conn, embed_fn, rerank_fn):
         return obtener_problemas_frecuentes(conn, argumentos["tramite_id"])
     if nombre == "ofrecer_contacto_humano":
         return ofrecer_contacto_humano()
+    if nombre == "buscar_formularios":
+        return formularios_tools.buscar_formularios(conn, argumentos)
+    if nombre == "guardar_respuesta_formulario":
+        return formularios_tools.guardar_respuesta_formulario(conn, session_id, argumentos)
     raise ValueError(f"Tool desconocida: {nombre}")

@@ -89,7 +89,16 @@ SYSTEM_PROMPT = (
     "documento personal, aunque comparta alguna palabra. "
     "Si el trámite que encontraste no es lo que la persona pidió, no se lo "
     "presentes como la respuesta: decile con honestidad que no encontraste "
-    "ese trámite y usá ofrecer_contacto_humano."
+    "ese trámite y usá ofrecer_contacto_humano. "
+    "Si la persona quiere anotarse, inscribirse o completar un formulario de un "
+    "organismo, o lo que cuenta coincide con alguno, llamá a buscar_formularios. "
+    "Antes de pedirle datos, decile qué organismo los recibe y para qué (el aviso "
+    "de finalidad del formulario) y dejá que decida si sigue. Pedile los datos del "
+    "formulario, resumilos y preguntale si son correctos; solo cuando confirme "
+    "llamá a guardar_respuesta_formulario con confirmado en verdadero. Si la "
+    "persona cancela, no guardes nada. Nunca digas que quedó registrado si "
+    "guardar_respuesta_formulario no devolvió ok, y nunca inventes datos que la "
+    "persona no te dio."
 )
 
 MAX_ITERACIONES_TOOLS = 5
@@ -168,7 +177,7 @@ def procesar_turno(conn, chat_client, embed_fn, rerank_fn, session_id: str, mens
         for tool_call in tool_calls:
             nombre = tool_call["function"]["name"]
             argumentos = json.loads(tool_call["function"]["arguments"])
-            resultado = ejecutar_tool(nombre, argumentos, conn, embed_fn, rerank_fn)
+            resultado = ejecutar_tool(nombre, argumentos, conn, embed_fn, rerank_fn, session_id=session_id)
 
             if nombre == "ofrecer_contacto_humano":
                 sugerir_contacto = True

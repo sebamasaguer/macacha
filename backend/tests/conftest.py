@@ -22,7 +22,7 @@ def db_conn():
 
 
 @pytest.fixture
-def clean_db():
+def clean_db(db_conn):
     conn = psycopg.connect(_test_database_url(), autocommit=True)
 
     def _clean() -> None:
@@ -42,5 +42,7 @@ def clean_db():
 
     _clean()
     yield
+    # db_conn puede dejar abierta una transacción con locks (p. ej. el FOR UPDATE de un formulario) y el DELETE esperaría.
+    db_conn.rollback()
     _clean()
     conn.close()
