@@ -92,6 +92,17 @@ export function UsuarioForm({
         </div>
       )}
 
+      {datos.rol === "admin_organismo" && (
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={datos.puede_crear_formularios}
+            onChange={(e) => actualizar("puede_crear_formularios", e.target.checked)}
+          />
+          Puede crear formularios
+        </label>
+      )}
+
       {esEdicion && (
         <label className="flex items-center gap-2 text-sm">
           <input

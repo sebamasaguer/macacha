@@ -65,6 +65,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               </ItemNav>
             </li>
             <li>
+              <ItemNav href="/admin/formularios" pathname={pathname} icono="▤">
+                Formularios
+              </ItemNav>
+            </li>
+            <li>
               <ItemNav href="/admin/feedback" pathname={pathname} icono="★">
                 Feedback
               </ItemNav>

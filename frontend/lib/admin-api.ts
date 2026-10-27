@@ -38,6 +38,7 @@ export type AdminSesionInfo = {
   email: string;
   rol: "super_admin" | "admin_organismo";
   organismo: string | null;
+  puede_crear_formularios: boolean;
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";

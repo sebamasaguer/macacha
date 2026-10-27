@@ -17,6 +17,7 @@ const VALORES_VACIOS: UsuarioFormValores = {
   rol: "admin_organismo",
   organismo_id: null,
   activo: true,
+  puede_crear_formularios: false,
 };
 
 export default function UsuariosPage() {
@@ -74,6 +75,7 @@ export default function UsuariosPage() {
       rol: usuario.rol,
       organismo_id: organismos.find((o) => o.nombre === usuario.organismo)?.id ?? null,
       activo: usuario.activo,
+      puede_crear_formularios: usuario.puede_crear_formularios,
     };
   }
 
@@ -126,6 +128,7 @@ export default function UsuariosPage() {
               <th className="p-2">Rol</th>
               <th className="p-2">Organismo</th>
               <th className="p-2">Activo</th>
+              <th className="p-2">Formularios</th>
               <th className="p-2"></th>
             </tr>
           </thead>
@@ -138,6 +141,9 @@ export default function UsuariosPage() {
                 </td>
                 <td className="p-2">{usuario.organismo ?? "—"}</td>
                 <td className="p-2">{usuario.activo ? "Sí" : "No"}</td>
+                <td className="p-2">
+                  {usuario.rol === "super_admin" ? "Todos" : usuario.puede_crear_formularios ? "Puede crear" : "Solo ver"}
+                </td>
                 <td className="p-2">
                   <button onClick={() => setEditando(usuario)} className="boton-secundario">
                     Editar

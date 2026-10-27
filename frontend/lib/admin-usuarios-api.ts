@@ -6,6 +6,7 @@ export type AdminUsuario = {
   rol: "super_admin" | "admin_organismo";
   organismo: string | null;
   activo: boolean;
+  puede_crear_formularios: boolean;
 };
 
 export type UsuarioFormValores = {
@@ -14,6 +15,7 @@ export type UsuarioFormValores = {
   rol: "super_admin" | "admin_organismo";
   organismo_id: number | null;
   activo: boolean;
+  puede_crear_formularios: boolean;
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -50,6 +52,7 @@ export async function editarUsuario(id: string, datos: UsuarioFormValores): Prom
       rol: datos.rol,
       organismo_id: datos.organismo_id,
       activo: datos.activo,
+      puede_crear_formularios: datos.puede_crear_formularios,
       password: datos.password || null,
     }),
   });
