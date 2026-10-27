@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import uuid
+from datetime import datetime, timezone
 from functools import lru_cache, partial
 from typing import Iterator, Literal
 
@@ -13,17 +14,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from agent import audio_transcription, feedback, mail, rate_limit, sessions
+from agent import audio_transcription, feedback, formularios_csv, mail, rate_limit, sessions
 from agent.admin import chats_repository as admin_chats_repository
 from agent.admin import contacto_repository
 from agent.admin.email_contacto import normalizar_email_contacto
 from agent.admin import feedback_repository as admin_feedback_repository
+from agent.admin import formularios_repository
 from agent.admin import repository as admin_repository
 from agent.admin import security as admin_security
 from agent.admin import tramite_editor as admin_tramite_editor
 from agent.admin import tramites_repository as admin_tramites_repository
 from agent.admin.dependencies import AdminActual, requiere_admin, requiere_super_admin
 from agent.chat_client import build_real_chat_client
+from agent.formularios_validacion import generar_clave
 from agent.orchestrator import procesar_turno
 from db.pool import crear_pool
 from ingest.openai_client import build_real_client
@@ -772,5 +775,199 @@ def admin_editar_estado_contacto(
         contacto_repository.actualizar_estado(
             conn, str(solicitud_id), request.estado, quien["email"] if quien else None
         )
+        conn.commit()
+    return {"ok": True}
+
+
+# ---------- Formularios por organismo ----------
+
+
+class CampoFormularioPayload(BaseModel):
+    clave: str | None = None
+    etiqueta: str = Field(min_length=1, max_length=120)
+    tipo: Literal["texto", "texto_largo", "dni", "telefono", "email", "numero", "fecha", "si_no", "opcion"]
+    obligatorio: bool = True
+    opciones: list[str] | None = None
+
+
+class FormularioPayload(BaseModel):
+    organismo_id: int | None = None
+    nombre: str = Field(min_length=1, max_length=150)
+    descripcion_uso: str = Field(default="", max_length=500)
+    aviso_finalidad: str = Field(default="", max_length=500)
+    tramite_id: str | None = None
+    estado: Literal["borrador", "activo", "cerrado"] = "borrador"
+    fecha_cierre: datetime | None = None
+    cupo: int | None = Field(default=None, gt=0)
+    campos: list[CampoFormularioPayload] = Field(min_length=1, max_length=30)
+
+
+def _cargar_formulario_de_mi_organismo(conn, admin: AdminActual, formulario_id: uuid.UUID) -> dict:
+    formulario = formularios_repository.obtener_formulario(conn, str(formulario_id))
+    if formulario is None or (admin.rol == "admin_organismo" and formulario["organismo_id"] != admin.organismo_id):
+        raise HTTPException(status_code=404, detail="Formulario no encontrado")
+    return formulario
+
+
+def _datos_de_formulario(conn, request: FormularioPayload, organismo_id: int) -> dict:
+    if request.tramite_id is not None:
+        if admin_tramites_repository.obtener_organismo_id_de_tramite(conn, request.tramite_id) != organismo_id:
+            raise HTTPException(status_code=400, detail="El trámite no pertenece al organismo del formulario")
+    fecha_cierre = request.fecha_cierre
+    if fecha_cierre is not None and fecha_cierre.tzinfo is None:
+        fecha_cierre = fecha_cierre.replace(tzinfo=timezone.utc)
+    return {
+        "nombre": request.nombre,
+        "descripcion_uso": request.descripcion_uso,
+        "aviso_finalidad": request.aviso_finalidad,
+        "tramite_id": request.tramite_id,
+        "estado": request.estado,
+        "fecha_cierre": fecha_cierre,
+        "cupo": request.cupo,
+    }
+
+
+@app.get("/admin/formularios")
+def admin_listar_formularios(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    admin: AdminActual = Depends(requiere_admin),
+    pool=Depends(obtener_pool),
+):
+    with pool.connection() as conn:
+        organismo_id = admin.organismo_id if admin.rol == "admin_organismo" else None
+        lista, total = formularios_repository.listar_formularios(conn, organismo_id, page, page_size)
+    return {"formularios": lista, "total": total, "page": page, "page_size": page_size}
+
+
+@app.post("/admin/formularios")
+def admin_crear_formulario(
+    request: FormularioPayload,
+    admin: AdminActual = Depends(requiere_gestor_de_formularios),
+    pool=Depends(obtener_pool),
+):
+    if admin.rol == "admin_organismo":
+        organismo_id = admin.organismo_id
+    elif request.organismo_id is None:
+        raise HTTPException(status_code=400, detail="Elegí el organismo del formulario")
+    else:
+        organismo_id = request.organismo_id
+    with pool.connection() as conn:
+        if admin_tramites_repository.obtener_nombre_organismo(conn, organismo_id) is None:
+            raise HTTPException(status_code=400, detail="El organismo no existe")
+        datos = _datos_de_formulario(conn, request, organismo_id)
+        creador = admin_repository.obtener_admin_por_id(conn, admin.id)
+        try:
+            formulario_id = formularios_repository.crear_formulario(
+                conn, organismo_id, datos, [c.model_dump() for c in request.campos], creador["email"]
+            )
+        except ValueError as error:
+            conn.rollback()
+            raise HTTPException(status_code=400, detail=str(error)) from error
+        conn.commit()
+    return {"id": formulario_id}
+
+
+@app.get("/admin/formularios/{formulario_id}")
+def admin_obtener_formulario(
+    formulario_id: uuid.UUID, admin: AdminActual = Depends(requiere_admin), pool=Depends(obtener_pool)
+):
+    with pool.connection() as conn:
+        return _cargar_formulario_de_mi_organismo(conn, admin, formulario_id)
+
+
+@app.put("/admin/formularios/{formulario_id}")
+def admin_editar_formulario(
+    formulario_id: uuid.UUID,
+    request: FormularioPayload,
+    admin: AdminActual = Depends(requiere_gestor_de_formularios),
+    pool=Depends(obtener_pool),
+):
+    with pool.connection() as conn:
+        formulario = _cargar_formulario_de_mi_organismo(conn, admin, formulario_id)
+        datos = _datos_de_formulario(conn, request, formulario["organismo_id"])
+        try:
+            formularios_repository.actualizar_formulario(
+                conn, str(formulario_id), datos, [c.model_dump() for c in request.campos]
+            )
+        except formularios_repository.ReglaDeEdicion as error:
+            conn.rollback()
+            raise HTTPException(status_code=409, detail=str(error)) from error
+        except ValueError as error:
+            conn.rollback()
+            raise HTTPException(status_code=400, detail=str(error)) from error
+        conn.commit()
+    return {"ok": True}
+
+
+@app.get("/admin/formularios/{formulario_id}/respuestas")
+def admin_listar_respuestas_formulario(
+    formulario_id: uuid.UUID,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    admin: AdminActual = Depends(requiere_admin),
+    pool=Depends(obtener_pool),
+):
+    with pool.connection() as conn:
+        formulario = _cargar_formulario_de_mi_organismo(conn, admin, formulario_id)
+        respuestas, total = formularios_repository.listar_respuestas(conn, str(formulario_id), page, page_size)
+    return {
+        "respuestas": [{"id": r["id"], "creado_en": r["creado_en"], "valores": r["valores"]} for r in respuestas],
+        "campos": formulario["campos"],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+    }
+
+
+@app.get("/admin/formularios/{formulario_id}/respuestas.csv")
+def admin_exportar_respuestas_formulario(
+    formulario_id: uuid.UUID, admin: AdminActual = Depends(requiere_admin), pool=Depends(obtener_pool)
+):
+    with pool.connection() as conn:
+        formulario = _cargar_formulario_de_mi_organismo(conn, admin, formulario_id)
+        respuestas = formularios_repository.todas_las_respuestas(conn, str(formulario_id))
+    contenido = "﻿" + formularios_csv.a_csv(formulario["campos"], respuestas)
+    archivo = generar_clave(formulario["nombre"], set())
+    return Response(
+        content=contenido.encode("utf-8"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{archivo}-respuestas.csv"'},
+    )
+
+
+@app.get("/admin/formularios/{formulario_id}/respuestas/{respuesta_id}")
+def admin_obtener_respuesta_formulario(
+    formulario_id: uuid.UUID,
+    respuesta_id: uuid.UUID,
+    admin: AdminActual = Depends(requiere_admin),
+    pool=Depends(obtener_pool),
+):
+    with pool.connection() as conn:
+        formulario = _cargar_formulario_de_mi_organismo(conn, admin, formulario_id)
+        respuesta = formularios_repository.obtener_respuesta(conn, str(formulario_id), str(respuesta_id))
+        if respuesta is None:
+            raise HTTPException(status_code=404, detail="Respuesta no encontrada")
+        mensajes = admin_chats_repository.obtener_mensajes_completos(conn, respuesta["session_id"])
+    return {
+        **respuesta,
+        "formulario": {"id": formulario["id"], "nombre": formulario["nombre"]},
+        "campos": formulario["campos"],
+        "mensajes": mensajes,
+    }
+
+
+@app.delete("/admin/formularios/{formulario_id}/respuestas/{respuesta_id}")
+def admin_borrar_respuesta_formulario(
+    formulario_id: uuid.UUID,
+    respuesta_id: uuid.UUID,
+    admin: AdminActual = Depends(requiere_gestor_de_formularios),
+    pool=Depends(obtener_pool),
+):
+    with pool.connection() as conn:
+        _cargar_formulario_de_mi_organismo(conn, admin, formulario_id)
+        quien = admin_repository.obtener_admin_por_id(conn, admin.id)
+        if not formularios_repository.borrar_respuesta(conn, str(formulario_id), str(respuesta_id), quien["email"]):
+            raise HTTPException(status_code=404, detail="Respuesta no encontrada")
         conn.commit()
     return {"ok": True}
