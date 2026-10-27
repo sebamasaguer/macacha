@@ -8,6 +8,8 @@ from agent.formularios_csv import valor_legible
 logger = logging.getLogger(__name__)
 
 MAX_FORMULARIOS_POR_SESION = 3
+# Después de consultar el formulario la persona tiene que escribir al menos dos veces: los datos y la confirmación del resumen.
+MIN_MENSAJES_DE_LA_PERSONA = 2
 
 
 def buscar_formularios(conn, argumentos: dict) -> list[dict]:
@@ -50,6 +52,15 @@ def guardar_respuesta_formulario(conn, session_id: str, argumentos: dict) -> dic
             "ok": False,
             "motivo": "formulario_no_consultado",
             "detalle": "Primero consultá el formulario con buscar_formularios.",
+        }
+    if formularios.mensajes_de_la_persona_desde_la_consulta(conn, session_id, formulario_id) < MIN_MENSAJES_DE_LA_PERSONA:
+        return {
+            "ok": False,
+            "motivo": "no_confirmado",
+            "detalle": (
+                "La persona todavía no confirmó. Resumí los datos que dio, preguntale si son correctos y esperá su "
+                "respuesta en un mensaje nuevo antes de guardar."
+            ),
         }
     valores = argumentos.get("valores")
     if not isinstance(valores, dict):

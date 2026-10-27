@@ -402,11 +402,12 @@ def formularios_abiertos(conn, tramite_id: str | None = None, consulta: str | No
     return elegidos
 
 
-def formularios_consultados_en_sesion(conn, session_id: str) -> set[str]:
+def _resultados_de_busqueda(conn, session_id: str) -> list[tuple[int, list[str]]]:
+    """Por cada resultado de buscar_formularios en la sesión: su posición en la conversación y los ids que devolvió."""
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT DISTINCT t.contenido
+            SELECT DISTINCT t.orden, t.contenido
             FROM mensajes t
             JOIN mensajes a ON a.session_id = t.session_id AND a.rol = 'assistant' AND a.tool_calls IS NOT NULL
             WHERE t.session_id = %s AND t.rol = 'tool'
@@ -414,19 +415,39 @@ def formularios_consultados_en_sesion(conn, session_id: str) -> set[str]:
                   SELECT 1 FROM jsonb_array_elements(a.tool_calls) llamada
                   WHERE llamada->>'id' = t.tool_call_id AND llamada->'function'->>'name' = 'buscar_formularios'
               )
+            ORDER BY t.orden
             """,
             (session_id,),
         )
-        contenidos = [fila[0] for fila in cur.fetchall()]
-    ids: set[str] = set()
-    for contenido in contenidos:
+        filas = cur.fetchall()
+    resultados: list[tuple[int, list[str]]] = []
+    for orden, contenido in filas:
         try:
             lista = json.loads(contenido)
         except (TypeError, ValueError):
             continue
         if isinstance(lista, list):
-            ids.update(str(item["id"]) for item in lista if isinstance(item, dict) and "id" in item)
-    return ids
+            resultados.append(
+                (orden, [str(item["id"]) for item in lista if isinstance(item, dict) and "id" in item])
+            )
+    return resultados
+
+
+def formularios_consultados_en_sesion(conn, session_id: str) -> set[str]:
+    return {id_ for _, ids in _resultados_de_busqueda(conn, session_id) for id_ in ids}
+
+
+def mensajes_de_la_persona_desde_la_consulta(conn, session_id: str, formulario_id: str) -> int:
+    """Cuántos mensajes escribió la persona después de que el asistente consultó este formulario por primera vez."""
+    consultas = [orden for orden, ids in _resultados_de_busqueda(conn, session_id) if formulario_id in ids]
+    if not consultas:
+        return 0
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT COUNT(*) FROM mensajes WHERE session_id = %s AND rol = 'user' AND orden > %s",
+            (session_id, min(consultas)),
+        )
+        return cur.fetchone()[0]
 
 
 def formularios_respondidos_en_sesion(conn, session_id: str) -> int:

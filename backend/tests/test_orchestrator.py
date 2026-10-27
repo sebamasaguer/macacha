@@ -624,6 +624,11 @@ def _llamada(nombre, argumentos, id_):
     }
 
 
+def _turnos_de_inscripcion(db_conn, chat_client, session_id, mensajes):
+    for mensaje in mensajes:
+        list(procesar_turno(db_conn, chat_client, _fake_embed_fn, _fake_rerank_fn, session_id, mensaje))
+
+
 def test_el_asistente_busca_el_formulario_y_guarda_la_respuesta_confirmada(db_conn, clean_db, monkeypatch):
     from agent import formularios_tools
     from agent.admin import formularios_repository
@@ -636,6 +641,8 @@ def test_el_asistente_busca_el_formulario_y_guarda_la_respuesta_confirmada(db_co
     chat_client = _FakeChatClient(
         [
             _llamada("buscar_formularios", {"consulta": "capacitación"}, "call_1"),
+            {"role": "assistant", "content": "Trabajo usa tus datos para inscribirte. ¿Seguimos?", "tool_calls": None},
+            {"role": "assistant", "content": "Resumen: Ana Pérez, DNI 30123456. ¿Es correcto?", "tool_calls": None},
             _llamada(
                 "guardar_respuesta_formulario",
                 {"formulario_id": formulario_id, "valores": valores_validos(), "confirmado": True},
@@ -645,16 +652,51 @@ def test_el_asistente_busca_el_formulario_y_guarda_la_respuesta_confirmada(db_co
         ]
     )
 
-    eventos = list(
-        procesar_turno(db_conn, chat_client, _fake_embed_fn, _fake_rerank_fn, session_id, "quiero anotarme a la capacitación")
+    _turnos_de_inscripcion(
+        db_conn,
+        chat_client,
+        session_id,
+        ["quiero anotarme a la capacitación", "sí, soy Ana Pérez, DNI 30123456", "sí, es correcto"],
     )
 
-    assert eventos[-1]["tipo"] == "fin"
     respuestas, total = formularios_repository.listar_respuestas(db_conn, formulario_id, 1, 10)
     assert total == 1 and respuestas[0]["valores"]["dni"] == "30123456"
     with db_conn.cursor() as cur:
         cur.execute("SELECT contenido FROM mensajes WHERE session_id = %s AND tool_call_id = 'call_2'", (session_id,))
         assert json.loads(cur.fetchone()[0]) == {"ok": True, "formulario": "Inscripción a la capacitación"}
+
+
+def test_el_asistente_no_guarda_en_el_mismo_turno_en_que_la_persona_da_los_datos(db_conn, clean_db, monkeypatch):
+    from agent import formularios_tools
+    from agent.admin import formularios_repository
+    from tests.formularios_helpers import crear_formulario, crear_organismo, valores_validos
+
+    monkeypatch.setattr(formularios_tools.mail, "enviar_mail", lambda *a, **k: None)
+    organismo_id = crear_organismo(db_conn)
+    formulario_id = crear_formulario(db_conn, organismo_id)
+    session_id = str(uuid.uuid4())
+    chat_client = _FakeChatClient(
+        [
+            _llamada("buscar_formularios", {"consulta": "capacitación"}, "call_1"),
+            {"role": "assistant", "content": "Trabajo usa tus datos para inscribirte. ¿Seguimos?", "tool_calls": None},
+            # El modelo se apura: guarda apenas recibe los datos, sin resumir ni esperar la confirmación.
+            _llamada(
+                "guardar_respuesta_formulario",
+                {"formulario_id": formulario_id, "valores": valores_validos(), "confirmado": True},
+                "call_2",
+            ),
+            {"role": "assistant", "content": "Resumen: Ana Pérez, DNI 30123456. ¿Es correcto?", "tool_calls": None},
+        ]
+    )
+
+    _turnos_de_inscripcion(
+        db_conn, chat_client, session_id, ["quiero anotarme a la capacitación", "sí, soy Ana Pérez, DNI 30123456"]
+    )
+
+    assert formularios_repository.listar_respuestas(db_conn, formulario_id, 1, 10)[1] == 0
+    with db_conn.cursor() as cur:
+        cur.execute("SELECT contenido FROM mensajes WHERE session_id = %s AND tool_call_id = 'call_2'", (session_id,))
+        assert json.loads(cur.fetchone()[0])["motivo"] == "no_confirmado"
 
 
 def test_el_asistente_no_puede_guardar_un_formulario_que_no_consulto(db_conn, clean_db, monkeypatch):

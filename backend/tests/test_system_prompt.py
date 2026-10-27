@@ -104,3 +104,10 @@ def test_prohibe_decir_que_se_guardo_sin_que_la_herramienta_lo_confirme():
 
     assert "Nunca digas que quedó registrado" in prompt
     assert "nunca inventes datos" in prompt
+
+
+def test_exige_esperar_la_confirmacion_en_un_mensaje_nuevo_aunque_den_todos_los_datos_juntos():
+    prompt = _normalizado()
+
+    assert "Aunque la persona te dé todos los datos juntos" in prompt
+    assert "esperá su respuesta en un mensaje nuevo" in prompt

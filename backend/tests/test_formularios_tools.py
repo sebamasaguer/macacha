@@ -37,7 +37,14 @@ def _consultar(conn, sesion, formulario_id, llamada="call_1"):
     sessions.guardar_mensaje(conn, sesion, "tool", json.dumps([{"id": formulario_id}]), tool_call_id=llamada)
 
 
-def _guardar(conn, sesion, formulario_id, **cambios):
+def _responder(conn, sesion, cantidad):
+    """La persona escribe: primero los datos y después la confirmación del resumen."""
+    for _ in range(cantidad):
+        sessions.guardar_mensaje(conn, sesion, "user", "mensaje de la persona")
+
+
+def _guardar(conn, sesion, formulario_id, mensajes_de_la_persona=2, **cambios):
+    _responder(conn, sesion, mensajes_de_la_persona)
     argumentos = {"formulario_id": formulario_id, "valores": valores_validos(), "confirmado": True}
     argumentos.update(cambios)
     return formularios_tools.guardar_respuesta_formulario(conn, sesion, argumentos)
@@ -275,6 +282,7 @@ def test_las_herramientas_estan_registradas_y_se_despachan(db_conn, clean_db, ma
     formulario_id = crear_formulario(db_conn, organismo_id)
     sesion = crear_sesion(db_conn)
     _consultar(db_conn, sesion, formulario_id)
+    _responder(db_conn, sesion, 2)
 
     encontrados = tools.ejecutar_tool("buscar_formularios", {}, db_conn, None, None, session_id=sesion)
     guardado = tools.ejecutar_tool(
@@ -287,3 +295,40 @@ def test_las_herramientas_estan_registradas_y_se_despachan(db_conn, clean_db, ma
     )
 
     assert encontrados[0]["id"] == formulario_id and guardado["ok"] is True
+
+
+@pytest.mark.parametrize("mensajes", [0, 1])
+def test_no_guarda_si_la_persona_no_alcanzo_a_dar_los_datos_y_confirmar(db_conn, clean_db, mails, mensajes):
+    # Con un solo mensaje de la persona después de la consulta, el asistente no pudo resumir y esperar la confirmación.
+    organismo_id = crear_organismo(db_conn)
+    formulario_id = crear_formulario(db_conn, organismo_id)
+    sesion = crear_sesion(db_conn)
+    _consultar(db_conn, sesion, formulario_id)
+
+    resultado = _guardar(db_conn, sesion, formulario_id, mensajes_de_la_persona=mensajes)
+
+    assert resultado["ok"] is False and resultado["motivo"] == "no_confirmado"
+    assert "resum" in resultado["detalle"].lower()
+    assert _cantidad(db_conn, formulario_id) == 0 and mails == []
+
+
+def test_guarda_cuando_la_persona_dio_los_datos_y_despues_confirmo(db_conn, clean_db, mails):
+    organismo_id = crear_organismo(db_conn)
+    formulario_id = crear_formulario(db_conn, organismo_id)
+    sesion = crear_sesion(db_conn)
+    _consultar(db_conn, sesion, formulario_id)
+    _responder(db_conn, sesion, 1)  # los datos; el asistente resume y pregunta
+
+    assert _guardar(db_conn, sesion, formulario_id, mensajes_de_la_persona=1)["ok"] is True
+
+
+def test_los_mensajes_anteriores_a_la_consulta_no_cuentan_como_confirmacion(db_conn, clean_db, mails):
+    organismo_id = crear_organismo(db_conn)
+    formulario_id = crear_formulario(db_conn, organismo_id)
+    sesion = crear_sesion(db_conn)
+    _responder(db_conn, sesion, 3)
+    _consultar(db_conn, sesion, formulario_id)
+
+    resultado = _guardar(db_conn, sesion, formulario_id, mensajes_de_la_persona=1)
+
+    assert resultado["motivo"] == "no_confirmado" and _cantidad(db_conn, formulario_id) == 0
