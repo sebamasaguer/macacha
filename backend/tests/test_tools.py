@@ -126,9 +126,10 @@ def test_ejecutar_tool_despacha_obtener_requisitos(db_conn, clean_db):
     assert resultado == ["DNI"]
 
 
-def test_tool_schemas_tiene_los_10_nombres_esperados():
+def test_tool_schemas_tiene_los_11_nombres_esperados():
     nombres = {schema["function"]["name"] for schema in tools.TOOL_SCHEMAS}
     assert nombres == {
+        "buscar_documentos",
         "buscar_tramite",
         "obtener_requisitos",
         "obtener_costos_modalidad",

@@ -1,8 +1,9 @@
-from agent import formularios_tools
+from agent import documentos_tools, formularios_tools
 from ingest.repository import obtener_snapshot_vigente
 from retrieval.hybrid_search import buscar_chunks
 
 TOOL_SCHEMAS = [
+    documentos_tools.SCHEMA_BUSCAR_DOCUMENTOS,
     {
         "type": "function",
         "function": {
@@ -255,6 +256,8 @@ def ejecutar_tool(nombre: str, argumentos: dict, conn, embed_fn, rerank_fn, sess
         return obtener_problemas_frecuentes(conn, argumentos["tramite_id"])
     if nombre == "ofrecer_contacto_humano":
         return ofrecer_contacto_humano()
+    if nombre == "buscar_documentos":
+        return documentos_tools.buscar_documentos(conn, embed_fn, argumentos)
     if nombre == "buscar_formularios":
         return formularios_tools.buscar_formularios(conn, argumentos)
     if nombre == "guardar_respuesta_formulario":
