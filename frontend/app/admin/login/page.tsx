@@ -35,6 +35,11 @@ export default function LoginPage() {
           <h1 className="mt-3 text-lg font-semibold">Ingresar</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
+          <img
+            src="/branding/salta-gobierno-color.png"
+            alt="Salta Gobierno"
+            className="mx-auto mb-2 h-10 w-auto"
+          />
           <input
             type="email"
             placeholder="Email"
