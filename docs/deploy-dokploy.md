@@ -114,6 +114,15 @@ Guardá el resultado — se usa en el paso 4.
    guardan el DNI y el teléfono de la ciudadanía: antes de usarlo en producción conviene definir la política de
    privacidad y de retención de esos datos.
 
+   Los documentos por organismo (hasta 3 por organismo, PDF o Word) agregan las tablas `organismo_documentos` y
+   `organismo_documento_chunks`. Mismo orden obligatorio: **primero** correr el esquema, **después** el backend y por
+   último el frontend. Si el backend sale antes, el chat falla en cada turno (consulta `organismo_documento_chunks`
+   antes de responder) y `/admin/documentos*` devuelve 500. El backend suma tres dependencias (`pypdf`,
+   `python-docx` y `python-multipart`): hay que reconstruir la imagen. Cada subida o reemplazo hace una llamada a
+   OpenAI para generar los embeddings, y cada turno del chat suma una más (un embedding de la consulta). El texto de
+   los documentos se envía a OpenAI. El esquema se aplica a mano contra la base de producción y solo cuando el
+   usuario lo autoriza.
+
 ## 3. Push a GitHub
 
 Si todavía no existe el repo remoto, creá uno privado (desde la web de
