@@ -7,7 +7,7 @@ from functools import lru_cache, partial
 from typing import Iterator, Literal
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 import anyio
 from anyio import to_thread
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from agent import audio_transcription, feedback, formularios_csv, mail, rate_limit, sessions
 from agent.admin import chats_repository as admin_chats_repository
 from agent.admin import contacto_repository
+from agent.admin import documentos_repository
 from agent.admin.email_contacto import normalizar_email_contacto
 from agent.admin import feedback_repository as admin_feedback_repository
 from agent.admin import formularios_repository
@@ -29,6 +30,8 @@ from agent.chat_client import build_real_chat_client
 from agent.formularios_validacion import generar_clave
 from agent.orchestrator import procesar_turno
 from db.pool import crear_pool
+from ingest.documento_texto import MAX_BYTES as DOCUMENTO_MAX_BYTES
+from ingest.documento_texto import DocumentoInvalido, extraer_texto, fragmentar
 from ingest.openai_client import build_real_client
 from ingest.repository import (
     incrementar_veces_consultado,
@@ -971,3 +974,132 @@ def admin_borrar_respuesta_formulario(
             raise HTTPException(status_code=404, detail="Respuesta no encontrada")
         conn.commit()
     return {"ok": True}
+
+
+# --- Documentos por organismo ---------------------------------------------------------------
+
+_LOTE_DE_EMBEDDINGS = 100
+
+
+def _cargar_documento_de_mi_organismo(conn, admin: AdminActual, documento_id: uuid.UUID) -> dict:
+    documento = documentos_repository.obtener_documento(conn, str(documento_id))
+    if documento is None or (admin.rol == "admin_organismo" and documento["organismo_id"] != admin.organismo_id):
+        raise HTTPException(status_code=404, detail="Documento no encontrado")
+    return documento
+
+
+def _leer_archivo_de_documento(archivo: UploadFile) -> bytes:
+    contenido = archivo.file.read(DOCUMENTO_MAX_BYTES + 1)
+    if len(contenido) > DOCUMENTO_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="El archivo supera el máximo de 10 MB.")
+    if not contenido:
+        raise HTTPException(status_code=400, detail="El archivo está vacío.")
+    return contenido
+
+
+def _procesar_documento(nombre_archivo: str, contenido: bytes, openai_client) -> tuple[list[str], list[list[float]]]:
+    """Extrae, fragmenta y vectoriza antes de tocar la base: si algo falla, no se pierde nada."""
+    try:
+        fragmentos = fragmentar(extraer_texto(nombre_archivo, contenido))
+    except DocumentoInvalido as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    embeddings: list[list[float]] = []
+    for inicio in range(0, len(fragmentos), _LOTE_DE_EMBEDDINGS):
+        embeddings.extend(openai_client.generate_embeddings(fragmentos[inicio : inicio + _LOTE_DE_EMBEDDINGS]))
+    return fragmentos, embeddings
+
+
+def _titulo_de_documento(titulo: str | None, nombre_archivo: str | None = None) -> str | None:
+    titulo = (titulo or "").strip()
+    if not titulo and nombre_archivo:
+        titulo = os.path.splitext(os.path.basename(nombre_archivo))[0].strip()
+    if len(titulo) > 150:
+        raise HTTPException(status_code=400, detail="El título no puede superar los 150 caracteres.")
+    return titulo or None
+
+
+@app.get("/admin/documentos")
+def admin_listar_documentos(
+    organismo_id: int | None = None, admin: AdminActual = Depends(requiere_admin), pool=Depends(obtener_pool)
+):
+    if admin.rol == "admin_organismo":
+        organismo_id = admin.organismo_id
+    with pool.connection() as conn:
+        return documentos_repository.listar_documentos(conn, organismo_id)
+
+
+@app.post("/admin/documentos", status_code=201)
+def admin_subir_documento(
+    archivo: UploadFile = File(...),
+    titulo: str | None = Form(None),
+    organismo_id: int | None = Form(None),
+    admin: AdminActual = Depends(requiere_admin),
+    pool=Depends(obtener_pool),
+    openai_client=Depends(obtener_openai_client),
+):
+    if admin.rol == "admin_organismo":
+        organismo_id = admin.organismo_id
+    elif organismo_id is None:
+        raise HTTPException(status_code=400, detail="Elegí el organismo del documento")
+    nombre_archivo = archivo.filename or "documento"
+    titulo = _titulo_de_documento(titulo, nombre_archivo) or nombre_archivo
+    contenido = _leer_archivo_de_documento(archivo)
+    fragmentos, embeddings = _procesar_documento(nombre_archivo, contenido, openai_client)
+    with pool.connection() as conn:
+        if admin_tramites_repository.obtener_nombre_organismo(conn, organismo_id) is None:
+            raise HTTPException(status_code=400, detail="El organismo no existe")
+        quien = admin_repository.obtener_admin_por_id(conn, admin.id)
+        try:
+            documento = documentos_repository.crear_documento(
+                conn, organismo_id, titulo, nombre_archivo, quien["email"], fragmentos, embeddings
+            )
+        except documentos_repository.TopeDeDocumentos:
+            conn.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail=f"Ya hay {documentos_repository.MAX_DOCUMENTOS_POR_ORGANISMO} documentos en el organismo. Reemplazá o borrá uno.",
+            )
+        conn.commit()
+    return documento
+
+
+@app.put("/admin/documentos/{documento_id}")
+def admin_reemplazar_documento(
+    documento_id: uuid.UUID,
+    archivo: UploadFile | None = File(None),
+    titulo: str | None = Form(None),
+    admin: AdminActual = Depends(requiere_admin),
+    pool=Depends(obtener_pool),
+    openai_client=Depends(obtener_openai_client),
+):
+    nombre_archivo = archivo.filename if archivo is not None else None
+    titulo = _titulo_de_documento(titulo)
+    if archivo is None and titulo is None:
+        raise HTTPException(status_code=400, detail="Indicá un archivo nuevo, un título nuevo, o ambos.")
+    with pool.connection() as conn:
+        _cargar_documento_de_mi_organismo(conn, admin, documento_id)
+    if archivo is None:
+        with pool.connection() as conn:
+            documento = documentos_repository.renombrar_documento(conn, str(documento_id), titulo)
+            conn.commit()
+        return documento
+    contenido = _leer_archivo_de_documento(archivo)
+    fragmentos, embeddings = _procesar_documento(nombre_archivo or "documento", contenido, openai_client)
+    with pool.connection() as conn:
+        quien = admin_repository.obtener_admin_por_id(conn, admin.id)
+        documento = documentos_repository.reemplazar_contenido(
+            conn, str(documento_id), nombre_archivo or "documento", quien["email"], fragmentos, embeddings, titulo
+        )
+        conn.commit()
+    return documento
+
+
+@app.delete("/admin/documentos/{documento_id}", status_code=204)
+def admin_borrar_documento(
+    documento_id: uuid.UUID, admin: AdminActual = Depends(requiere_admin), pool=Depends(obtener_pool)
+):
+    with pool.connection() as conn:
+        _cargar_documento_de_mi_organismo(conn, admin, documento_id)
+        documentos_repository.borrar_documento(conn, str(documento_id))
+        conn.commit()
+    return Response(status_code=204)
