@@ -43,3 +43,10 @@ def test_ejecutar_tool_despacha_buscar_documentos(db_conn, clean_db):
     _cargar(db_conn, "horario de atención de lunes a viernes")
     r = tools.ejecutar_tool("buscar_documentos", {"query": "horario"}, db_conn, _embed, lambda q, c: [])
     assert r["fragmentos"][0]["documento"] == "Reglamento de Vialidad"
+
+
+def test_el_aviso_pide_mencionar_documento_y_organismo(db_conn, clean_db):
+    _cargar(db_conn, "horario de atención de lunes a viernes")
+    aviso = buscar_documentos(db_conn, _embed, {"query": "horario"})["aviso"]
+    assert "Obligatorio" in aviso
+    assert "título del documento" in aviso and "organismo" in aviso

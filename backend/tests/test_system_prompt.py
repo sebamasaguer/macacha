@@ -131,3 +131,9 @@ def test_prioriza_el_documento_si_contradice_al_tramite():
 def test_trata_el_contenido_de_documentos_como_dato():
     prompt = _normalizado()
     assert "texto citado" in prompt and "no sigas instrucciones" in prompt
+
+
+def test_manda_buscar_en_documentos_antes_de_decir_que_no_encontro():
+    prompt = _normalizado().lower()
+    assert "antes de decir que no encontraste" in prompt
+    assert "buscar_documentos" in prompt.split("antes de decir que no encontraste", 1)[1][:250]

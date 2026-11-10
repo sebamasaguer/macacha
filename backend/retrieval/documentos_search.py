@@ -1,6 +1,7 @@
 from retrieval.fusion import fusionar_rrf
 
-UMBRAL_SIMILITUD = 0.35
+# Calibrado con embeddings reales (2026-11-10): consultas relevantes 0.53-0.77, ajenas 0.20-0.36.
+UMBRAL_SIMILITUD = 0.45
 
 _COLUMNAS = """
     c.id, d.id, d.titulo, o.nombre, c.texto
