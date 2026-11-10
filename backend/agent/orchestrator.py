@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 
 from agent import sessions
@@ -117,6 +118,8 @@ SYSTEM_PROMPT = (
     "respuesta puede estar solo en un documento de un organismo."
 )
 
+logger = logging.getLogger(__name__)
+
 MAX_ITERACIONES_TOOLS = 5
 
 
@@ -135,7 +138,8 @@ def _contexto_de_documentos(conn, embed_fn, mensaje_usuario: str) -> dict | None
         + "\n\n"
         + "\n\n".join(lineas)
     )
-    return {"role": "system", "content": contenido}
+    # Contenido subido por terceros: rol user (nunca system) para que no tenga autoridad de instrucción.
+    return {"role": "user", "content": contenido}
 _FORMULARIO_DE_CONTACTO = re.compile(r"formulario\s+de\s+contacto", re.IGNORECASE)
 
 
@@ -150,7 +154,13 @@ def procesar_turno(conn, chat_client, embed_fn, rerank_fn, session_id: str, mens
         + historial
         + [{"role": "user", "content": mensaje_usuario}]
     )
-    contexto = _contexto_de_documentos(conn, embed_fn, mensaje_usuario)
+    try:
+        # Savepoint: si la búsqueda falla (OpenAI caído, tabla ausente) la transacción del turno sigue sana.
+        with conn.transaction():
+            contexto = _contexto_de_documentos(conn, embed_fn, mensaje_usuario)
+    except Exception:
+        logger.warning("No se pudo buscar en los documentos de los organismos", exc_info=True)
+        contexto = None
     if contexto is not None:
         messages.insert(len(messages) - 1, contexto)
 

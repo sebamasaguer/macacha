@@ -104,3 +104,28 @@ def test_rechaza_documento_que_excede_el_maximo_de_fragmentos():
     texto = "\n\n".join(PARRAFO * 5 for _ in range(MAX_FRAGMENTOS * 3))
     with pytest.raises(DocumentoInvalido, match="demasiado extenso"):
         fragmentar(texto)
+
+
+def test_rechaza_docx_que_expande_mas_de_lo_permitido():
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("word/document.xml", b"0" * (60 * 1024 * 1024))
+    assert len(buf.getvalue()) < 1024 * 1024
+    with pytest.raises(DocumentoInvalido, match="demasiado extenso"):
+        extraer_texto("bomba.docx", buf.getvalue())
+
+
+def test_rechaza_pdf_con_demasiadas_paginas():
+    from pypdf import PdfWriter
+
+    from ingest.documento_texto import MAX_PAGINAS
+
+    w = PdfWriter()
+    for _ in range(MAX_PAGINAS + 1):
+        w.add_blank_page(width=100, height=100)
+    buf = io.BytesIO()
+    w.write(buf)
+    with pytest.raises(DocumentoInvalido, match="demasiado extenso"):
+        extraer_texto("enorme.pdf", buf.getvalue())

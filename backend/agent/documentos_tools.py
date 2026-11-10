@@ -31,12 +31,21 @@ SCHEMA_BUSCAR_DOCUMENTOS = {
 }
 
 
+def _escapar(texto: str) -> str:
+    """Un fragmento no puede cerrar su propia cita ni abrir otra."""
+    return texto.replace(">>>", "> > >").replace("<<<", "< < <")
+
+
 def buscar_documentos(conn, embed_fn, argumentos: dict) -> dict:
     chunks = buscar_documentos_chunks(conn, embed_fn, argumentos["query"], top_k=5)
     return {
         "aviso": AVISO,
         "fragmentos": [
-            {"documento": c["titulo"], "organismo": c["organismo"], "texto": f"<<<{c['texto']}>>>"}
+            {
+                "documento": _escapar(c["titulo"]),
+                "organismo": _escapar(c["organismo"]),
+                "texto": f"<<<{_escapar(c['texto'])}>>>",
+            }
             for c in chunks
         ],
     }

@@ -42,11 +42,28 @@ def test_descarta_fragmentos_bajo_el_umbral_de_similitud(db_conn, clean_db):
     assert 0 < UMBRAL_SIMILITUD < 1
 
 
-def test_encuentra_por_texto_aunque_el_vector_no_alcance(db_conn, clean_db):
+def _vec_con_similitud(similitud: float) -> list[float]:
+    v = [0.0] * 1536
+    v[0] = similitud
+    v[5] = (1 - similitud**2) ** 0.5
+    return v
+
+
+def test_encuentra_por_texto_si_el_vector_esta_cerca_aunque_bajo_el_umbral_vectorial(db_conn, clean_db):
     org = crear_organismo(db_conn)
-    _doc(db_conn, org, "Delegaciones", ["La delegación de Orán atiende en calle España"], [5])
+    docs.crear_documento(
+        db_conn, org, "Delegaciones", "d.pdf", "a@b.c",
+        ["La delegación de Orán atiende en calle España"], [_vec_con_similitud(0.36)],
+    )
+    db_conn.commit()
     resultados = buscar_documentos_chunks(db_conn, _embed(0), "Orán")
     assert [r["titulo"] for r in resultados] == ["Delegaciones"]
+
+
+def test_una_palabra_comun_sin_cercania_semantica_no_entra(db_conn, clean_db):
+    org = crear_organismo(db_conn)
+    _doc(db_conn, org, "Reglamento", ["Presentar copia del DNI y comprobante de pago"], [5])
+    assert buscar_documentos_chunks(db_conn, _embed(0), "DNI") == []
 
 
 def test_sin_coincidencias_devuelve_lista_vacia(db_conn, clean_db):

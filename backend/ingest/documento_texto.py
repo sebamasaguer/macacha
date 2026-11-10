@@ -4,6 +4,9 @@ import re
 MINIMO_CARACTERES = 200
 MAX_FRAGMENTOS = 400
 MAX_BYTES = 10 * 1024 * 1024
+MAX_PAGINAS = 300
+MAX_BYTES_DESCOMPRIMIDOS = 50 * 1024 * 1024
+_MENSAJE_EXTENSO = "El documento es demasiado extenso. Dividilo en partes."
 
 
 class DocumentoInvalido(ValueError):
@@ -14,12 +17,19 @@ def _texto_de_pdf(contenido: bytes) -> str:
     from pypdf import PdfReader
 
     lector = PdfReader(io.BytesIO(contenido))
+    if len(lector.pages) > MAX_PAGINAS:
+        raise DocumentoInvalido(_MENSAJE_EXTENSO)
     return "\n\n".join((pagina.extract_text() or "") for pagina in lector.pages)
 
 
 def _texto_de_docx(contenido: bytes) -> str:
+    import zipfile
+
     from docx import Document
 
+    with zipfile.ZipFile(io.BytesIO(contenido)) as z:
+        if sum(i.file_size for i in z.infolist()) > MAX_BYTES_DESCOMPRIMIDOS:
+            raise DocumentoInvalido(_MENSAJE_EXTENSO)
     doc = Document(io.BytesIO(contenido))
     partes = [p.text for p in doc.paragraphs]
     for tabla in doc.tables:
@@ -40,6 +50,8 @@ def extraer_texto(nombre_archivo: str, contenido: bytes) -> str:
         raise DocumentoInvalido("Solo se admiten archivos PDF o Word (.docx).")
     try:
         texto = lector(contenido)
+    except DocumentoInvalido:
+        raise
     except Exception as error:
         raise DocumentoInvalido("No se pudo leer el archivo. Verificá que no esté dañado.") from error
     texto = re.sub(r"[ \t]+", " ", texto).strip()

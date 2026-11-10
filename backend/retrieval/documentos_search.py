@@ -2,6 +2,8 @@ from retrieval.fusion import fusionar_rrf
 
 # Calibrado con embeddings reales (2026-11-10): consultas relevantes 0.53-0.77, ajenas 0.20-0.36.
 UMBRAL_SIMILITUD = 0.45
+# La rama textual también exige algo de cercanía semántica: una palabra común ("DNI", "trámite") no alcanza.
+UMBRAL_SIMILITUD_TEXTUAL = 0.30
 
 _COLUMNAS = """
     c.id, d.id, d.titulo, o.nombre, c.texto
@@ -35,16 +37,17 @@ def _por_similitud(conn, query_embedding: list[float], top_n: int) -> list[dict]
         return [_chunk(fila) for fila in cur.fetchall()]
 
 
-def _por_texto(conn, query: str, top_n: int) -> list[dict]:
+def _por_texto(conn, query: str, query_embedding: list[float], top_n: int) -> list[dict]:
     with conn.cursor() as cur:
         cur.execute(
             f"""
             SELECT {_COLUMNAS}
             WHERE c.tsv @@ websearch_to_tsquery('spanish', %s)
+              AND 1 - (c.embedding <=> %s::vector) >= %s
             ORDER BY ts_rank(c.tsv, websearch_to_tsquery('spanish', %s)) DESC
             LIMIT %s
             """,
-            (query, query, top_n),
+            (query, query_embedding, UMBRAL_SIMILITUD_TEXTUAL, query, top_n),
         )
         return [_chunk(fila) for fila in cur.fetchall()]
 
@@ -52,5 +55,5 @@ def _por_texto(conn, query: str, top_n: int) -> list[dict]:
 def buscar_documentos_chunks(conn, embed_fn, query: str, top_k: int = 5) -> list[dict]:
     query_embedding = embed_fn([query])[0]
     vectorial = _por_similitud(conn, query_embedding, top_n=20)
-    textual = _por_texto(conn, query, top_n=20)
+    textual = _por_texto(conn, query, query_embedding, top_n=20)
     return fusionar_rrf(vectorial, textual)[:top_k]

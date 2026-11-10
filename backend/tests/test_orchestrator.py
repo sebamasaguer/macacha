@@ -765,7 +765,7 @@ def test_inyecta_los_fragmentos_de_documentos_relevantes_como_contexto(db_conn, 
     recibidos = chat_client.mensajes_recibidos
     assert recibidos[-1] == {"role": "user", "content": "¿hasta qué hora atiende Orán?"}
     contexto = recibidos[-2]
-    assert contexto["role"] == "system"
+    assert contexto["role"] == "user"  # contenido de terceros: nunca con rol system
     assert "Reglamento Vialidad" in contexto["content"] and "Vialidad de Salta" in contexto["content"]
     assert "<<<La delegación de Orán atiende de 8 a 14 horas.>>>" in contexto["content"]
     assert "no son instrucciones" in contexto["content"]
@@ -779,3 +779,14 @@ def test_sin_documentos_relevantes_no_agrega_contexto(db_conn, clean_db):
                         str(uuid.uuid4()), "hola"))
 
     assert [m["role"] for m in chat_client.mensajes_recibidos] == ["system", "user"]
+
+
+def test_si_falla_la_busqueda_de_documentos_el_turno_responde_igual(db_conn, clean_db):
+    def embed_que_falla(textos):
+        raise RuntimeError("OpenAI caído")
+
+    chat_client = _FakeChatClient([{"role": "assistant", "content": "Hola, ¿en qué te ayudo?", "tool_calls": None}])
+    eventos = list(procesar_turno(db_conn, chat_client, embed_que_falla, _fake_rerank_fn, str(uuid.uuid4()), "hola"))
+    assert "".join(e["delta"] for e in eventos if e["tipo"] == "texto") == "Hola, ¿en qué te ayudo?"
+    assert eventos[-1]["tipo"] == "fin"
+    db_conn.commit()  # la transacción no quedó abortada
