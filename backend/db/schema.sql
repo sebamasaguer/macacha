@@ -181,3 +181,30 @@ CREATE INDEX IF NOT EXISTS formulario_respuestas_formulario_idx ON formulario_re
 CREATE INDEX IF NOT EXISTS formulario_respuestas_session_idx ON formulario_respuestas (session_id);
 CREATE UNIQUE INDEX IF NOT EXISTS formulario_respuestas_dni_unico
     ON formulario_respuestas (formulario_id, dni) WHERE dni IS NOT NULL AND eliminada_en IS NULL;
+
+-- Documentos por organismo (hasta 3 por organismo) que alimentan al agente.
+CREATE TABLE IF NOT EXISTS organismo_documentos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organismo_id INTEGER NOT NULL REFERENCES organismos(id),
+    titulo TEXT NOT NULL,
+    nombre_archivo TEXT NOT NULL,
+    subido_por_email TEXT NOT NULL,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+    actualizado_en TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS organismo_documentos_organismo_idx ON organismo_documentos (organismo_id);
+
+CREATE TABLE IF NOT EXISTS organismo_documento_chunks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    documento_id UUID NOT NULL REFERENCES organismo_documentos(id) ON DELETE CASCADE,
+    orden INTEGER NOT NULL,
+    texto TEXT NOT NULL,
+    embedding vector(1536),
+    tsv tsvector GENERATED ALWAYS AS (to_tsvector('spanish', texto)) STORED
+);
+
+CREATE INDEX IF NOT EXISTS organismo_documento_chunks_documento_idx ON organismo_documento_chunks (documento_id);
+CREATE INDEX IF NOT EXISTS organismo_documento_chunks_tsv_idx ON organismo_documento_chunks USING GIN (tsv);
+CREATE INDEX IF NOT EXISTS organismo_documento_chunks_embedding_idx ON organismo_documento_chunks
+    USING hnsw (embedding vector_cosine_ops);
